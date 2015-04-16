@@ -25,7 +25,7 @@ public class Board extends JPanel {
 	int height;
 	int width;
 	Board thisBoard = this;		// used for later reference
-	MovableBlock movableBlock;
+	MovableBlock movableBlock, nextMovableBlock;
 	Block[][] blocks = new Block[this.numberOfColumns][this.numberOfRows];
 	int[] numbersOfStacks = new int[this.numberOfColumns];
 	public Board(int w, int h) {
@@ -36,6 +36,8 @@ public class Board extends JPanel {
 		this.addKeyListener(listener);
 		this.setFocusable(true);
 		this.movableBlock = new MovableBlock();
+		this.movableBlock.setVisible(true);
+		this.nextMovableBlock = new MovableBlock();
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			numbersOfStacks[c] = 0;
 			for (int r = 0; r < this.numberOfRows; r++) {
@@ -80,14 +82,19 @@ public class Board extends JPanel {
 
 	// the block class
 	private class MovableBlock {
+		private int tempX;	// x coordinate of the block
+		private int tempY;	// y coordinate of the block
+		private int tempWidth;
+		private int tempHeight;
 		private int x;	// x coordinate of the block
 		private int y;	// y coordinate of the block
-		private int width  = thisBoard.width /thisBoard.getNumberOfColumns();	// width of the block
+		private int width = thisBoard.width /thisBoard.getNumberOfColumns();	// width of the block
 		private int height = thisBoard.height/thisBoard.getNumberOfRows();
 		private Color color = Color.RED;	// color of the block
 		private boolean canDrop = false;
 		private int transformTime = 100;
 		private int transformTimer = transformTime;
+		private boolean visible = false;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
@@ -99,6 +106,16 @@ public class Board extends JPanel {
 		}
 
 		private void update() {
+			if (this.transformTimer >= 0) {
+				this.tempWidth = thisBoard.width - ((thisBoard.numberOfColumns - 1) * this.width - this.transformTimer * (thisBoard.numberOfColumns - 1) * this.width / this.transformTime);
+				this.tempHeight = this.height;
+				this.tempX = this.x - this.x * this.transformTimer / this.transformTime;
+				this.tempY = this.y;
+				this.transformTimer--;
+			} else {
+				this.canDrop = true;
+				thisBoard.nextMovableBlock.setVisible(true);
+			}
 			if (this.canDrop) {
 				this.drop();
 				int column = this.x / this.width;
@@ -107,11 +124,15 @@ public class Board extends JPanel {
 					int row = this.y / this.height;
 					thisBoard.blocks[column][row].setVisible(true);
 					numbersOfStacks[column]++;
-					thisBoard.movableBlock = new MovableBlock();
+					thisBoard.movableBlock = thisBoard.nextMovableBlock;
+					thisBoard.nextMovableBlock = new MovableBlock();
 				}
 			}
 		}
 
+		private void setVisible(boolean b) {
+			this.visible = b;
+		}
 
 		private void drop() {
 			this.y++;
@@ -137,25 +158,17 @@ public class Board extends JPanel {
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
-			int width, height, x, y;
-			g2d.setColor(this.color);
-			if (this.transformTimer > 0) {
-				width = thisBoard.width - ((thisBoard.numberOfColumns - 1) * this.width - this.transformTimer * (thisBoard.numberOfColumns - 1) * this.width / this.transformTime);
-				height = this.height;
-				x = this.x - this.x * this.transformTimer / this.transformTime;
-				y = this.y;
-				this.transformTimer--;
-			} else {
-				this.canDrop = true;
-				width = this.width;
-				height = this.height;
-				x = this.x;
-				y = this.y;
+			if (this.visible) {
+				g2d.setColor(this.color);
+				if (this.transformTimer >= 0) {
+					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
+				} else {
+					g2d.fillRect(this.x, this.y, this.width, this.height);
+				}
+				if (debugging) {
+					System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+this.width+", "+this.height+")");
+				}
 			}
-			if (debugging) {
-				System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+width+", "+height+")");
-			}
-			g2d.fillRect(x, y, width, height);
 		}
 
 	}
@@ -232,6 +245,7 @@ public class Board extends JPanel {
 				this.blocks[c][r].paint(g2d);
 			}
 		}
+		this.nextMovableBlock.paint(g2d);
 	}
 
 	// update the status
