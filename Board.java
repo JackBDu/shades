@@ -81,20 +81,15 @@ public class Board extends JPanel {
 	}
 
 	// the block class
-	private class MovableBlock {
+	private class MovableBlock extends Block{
 		private int tempX;	// x coordinate of the block
 		private int tempY;	// y coordinate of the block
 		private int tempWidth;
 		private int tempHeight;
-		private int x;	// x coordinate of the block
-		private int y;	// y coordinate of the block
-		private int width = thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
-		private int height = thisBoard.height/(thisBoard.getNumberOfRows());
-		private Color color = Color.RED;	// color of the block
 		private boolean canDrop = false;
 		private int transformTime = 100;
 		private int transformTimer = transformTime;
-		private boolean visible = false;
+		// private boolean visible = false;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
@@ -174,18 +169,17 @@ public class Board extends JPanel {
 	}
 
 	private class Block {
-		private int x;	// x coordinate of the block
-		private int y;	// y coordinate of the block
-		private int width  = thisBoard.width /thisBoard.getNumberOfColumns();	// width of the block
-		private int height = thisBoard.height/thisBoard.getNumberOfRows();		// height of the block
-		private boolean visible;
-		Color color = Color.RED;	// color of the block
+		public int x;	// x coordinate of the block
+		public int y;	// y coordinate of the block
+		public int width = thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
+		public int height = thisBoard.height/(thisBoard.getNumberOfRows());
+		public Color color = Color.RED;	// color of the block
+		public boolean visible = false;
 
 		public Block() {
 		}
 
 		public Block(int x, int y) {
-			this.visible = false;
 			this.x = x;
 			this.y = y;
 		}
