@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 
 /*
  * @ version 0.0.1
@@ -23,10 +24,18 @@ public class Board extends JPanel {
 	int numberOfRows    = 11;	// number of rows of blocks
 	Board thisBoard = this;		// used for later reference
 	Block block;
+	Block[][] blocks = new Block[this.numberOfColumns][this.numberOfRows];
 	public Board() {
+		this.setBackground(Color.BLACK);
 		KeyListener listener = new MyKeyListener();
 		addKeyListener(listener);
 		setFocusable(true);
+		this.block = new Block();
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
+				this.blocks[c][r] = new Block();
+			}
+		}
 	}
 	
 	// return the number of columns of blocks 
@@ -68,16 +77,20 @@ public class Board extends JPanel {
 		private int width  = thisBoard.getWidth() /thisBoard.getNumberOfColumns();	// width of the block
 		private int height = thisBoard.getHeight()/thisBoard.getNumberOfRows();		// height of the block
 		Color color = Color.RED;	// color of the block
-		private boolean canDrop = true;
+		private boolean canDrop = false;
+		private int transformTime = 100;
+		private int transformTimer = transformTime;
 
 		// contructor that sets (0, 0) as default coordinates
 		public Block() {
-			this.x = 0;
-			this.y = 0;
+			Random rand = new Random();
+			int n = rand.nextInt(thisBoard.numberOfColumns);
+			this.x = this.width * n;
+			this.y = - 9 * this.height / 10;
 		}
 
-		// constructor that sets specified coordinates
 		public Block(int x, int y) {
+			this.transformTimer = 0;
 			this.x = x;
 			this.y = y;
 		}
@@ -87,7 +100,7 @@ public class Board extends JPanel {
 				this.drop();
 				if (this.y == thisBoard.getHeight() - this.height) {
 					this.canDrop = false;
-					System.out.println("Stop!");
+					thisBoard.block = new Block();
 				}
 			}
 		}
@@ -117,11 +130,26 @@ public class Board extends JPanel {
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
-			if (debugging) {
-				System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.width+", "+this.height+")");
-			}
+			int width, height, x, y;
 			g2d.setColor(this.color);
-			g2d.fillRect(this.x, this.y, this.width, this.height);
+			if (this.transformTimer > 0) {
+				width = thisBoard.getWidth() - ((thisBoard.numberOfColumns - 1) * this.width - this.transformTimer * (thisBoard.numberOfColumns - 1) * this.width / this.transformTime);
+				height = this.height;
+				x = this.x - this.x * this.transformTimer / this.transformTime;
+				y = this.y;
+				this.transformTimer--;
+				System.out.println(this.transformTimer);
+			} else {
+				this.canDrop = true;
+				width = this.width;
+				height = this.height;
+				x = this.x;
+				y = this.y;
+			}
+			if (debugging) {
+				System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+width+", "+height+")");
+			}
+			g2d.fillRect(x, y, width, height);
 		}
 
 	}
@@ -130,8 +158,7 @@ public class Board extends JPanel {
 		public void keyPressed(KeyEvent e) {
 			if (KeyEvent.getKeyText(e.getKeyCode()) == "Left") {
 				thisBoard.block.moveLeft();
-			}
-			if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
+			} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
 				thisBoard.block.moveRight();
 			}
 		}
@@ -152,19 +179,26 @@ public class Board extends JPanel {
 			System.out.println("painting");
 		}
 		super.paint(g);
-		this.setBackground(Color.BLACK);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		/*
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
+				this.blocks[c][r].paint(g2d);
+			}
+		}
+		*/
 		this.block.paint(g2d);
 	}
 
 	// update the status
 	public void update() {
-		if (debugging) {
-			this.block = new Block(0, 0);
-			debugging = false;
-		}
 		this.block.update();
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
+				this.blocks[c][r].update();
+			}
+		}
 	}
 	
 	// main function for the board
@@ -188,7 +222,7 @@ public class Board extends JPanel {
 		while (true) {
 			board.update();
 			board.repaint();
-			Thread.sleep(10);
+			Thread.sleep(5);
 		}
 	}
 
