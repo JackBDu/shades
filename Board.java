@@ -39,7 +39,7 @@ public class Board extends JPanel {
 		this.movableBlock.setVisible(true);
 		this.nextMovableBlock = new MovableBlock();
 		for (int c = 0; c < this.numberOfColumns; c++) {
-			numbersOfStacks[c] = 0;
+			this.numbersOfStacks[c] = 0;
 			for (int r = 0; r < this.numberOfRows; r++) {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height;
@@ -88,8 +88,8 @@ public class Board extends JPanel {
 		private int tempHeight;
 		private int x;	// x coordinate of the block
 		private int y;	// y coordinate of the block
-		private int width = thisBoard.width /thisBoard.getNumberOfColumns();	// width of the block
-		private int height = thisBoard.height/thisBoard.getNumberOfRows();
+		private int width = thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
+		private int height = thisBoard.height/(thisBoard.getNumberOfRows());
 		private Color color = Color.RED;	// color of the block
 		private boolean canDrop = false;
 		private int transformTime = 100;
@@ -142,7 +142,7 @@ public class Board extends JPanel {
 			if (debugging) {
 				System.out.println("block moving left");
 			}
-			if (this.x > 0) {
+			if (this.x > 0 && thisBoard.numbersOfStacks[this.x/this.width-1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
 				this.x -= this.width;
 			}
 		}
@@ -151,7 +151,7 @@ public class Board extends JPanel {
 			if (debugging) {
 				System.out.println("block moving right");
 			}
-			if (this.x < thisBoard.width - this.width) {
+			if (this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
 				this.x += this.width;
 			}
 		}
@@ -229,7 +229,6 @@ public class Board extends JPanel {
 
 
 	// paint the whole board
-	@Override
 	public void paint(Graphics g) {
 		if (debugging) {
 			System.out.println("painting");
@@ -260,7 +259,7 @@ public class Board extends JPanel {
 
 		// initialize the frame
 		frame.add(board);
-		frame.setSize(300, 480);
+		frame.setSize(300, 495);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
