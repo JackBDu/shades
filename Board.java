@@ -19,7 +19,8 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 			debugging		= false;	// for debugging
+	boolean 			debugging		= false;	// for 
+	boolean				isDisappearing	= false;
 	int 				numberOfColumns	= 4;	// number of columns of blocks
 	int 				numberOfRows	= 11;	// number of rows of blocks
 	Block[][]			blocks			= new Block[this.numberOfColumns][this.numberOfRows];
@@ -114,7 +115,7 @@ public class Board extends JPanel {
 				thisBoard.numbersOfStacks[c]--;
 			}
 			for (int r = 0; r < disappearingRow; r++) {
-				for (int c = 1; c < this.numberOfColumns; c++) {
+				for (int c = 0; c < this.numberOfColumns; c++) {
 					Block thisBlock = this.blocks[c][r];
 					if (thisBlock.getVisible()) {
 						System.out.println("visible");
@@ -125,6 +126,8 @@ public class Board extends JPanel {
 					}
 				}
 			}
+		} else {
+			this.isDisappearing = false;
 		}
 	}
 
@@ -150,10 +153,11 @@ public class Board extends JPanel {
 	// update the status
 	public void update() {
 		this.movableBlock.update();
-		this.handleDisappear();
-		for (int c = 0; c < this.numberOfColumns; c++) {
-			for (int r = 0; r < this.numberOfRows - 1; r++) {
-				this.droppableBlocks[c][r].update();
+		if (this.isDisappearing) {
+			for (int c = 0; c < this.numberOfColumns; c++) {
+				for (int r = 0; r < this.numberOfRows - 1; r++) {
+					this.droppableBlocks[c][r].update();
+				}
 			}
 		}
 	}
@@ -212,7 +216,9 @@ public class Board extends JPanel {
 				this.tempHeight	= this.height;
 				this.tempX		= this.x - this.x * this.transformTimer / this.transformTime;
 				this.tempY		= this.y;
-				this.transformTimer--;
+				if (!thisBoard.isDisappearing) {
+					this.transformTimer--;
+				}
 			} else {
 				this.canDrop	= true;
 				thisBoard.nextMovableBlock.setVisible(true);
@@ -243,6 +249,8 @@ public class Board extends JPanel {
 						numbersOfStacks[column]++;
 						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 						thisBoard.nextMovableBlock	= new MovableBlock();
+						thisBoard.isDisappearing	= true;
+						thisBoard.handleDisappear();
 					}
 				}
 			}
@@ -320,7 +328,7 @@ public class Board extends JPanel {
 
 		public void update() {
 			if (this.canDrop) {
-				System.out.println("dropping"+this.y);
+				System.out.println("dropping "+this.y);
 				this.drop();
 				if (this.canMerge) {
 					this.merge();
@@ -336,7 +344,8 @@ public class Board extends JPanel {
 						this.mergeTimer	= this.mergeTime;
 						thisBoard.numbersOfStacks[column]--;
 					} else {
-						this.canDrop = false;
+						thisBoard.handleDisappear();
+						this.canDrop 				= false;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
 						this.setVisible(false);
