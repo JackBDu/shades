@@ -19,7 +19,7 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 	debugging		= true;	// for debugging
+	boolean 	debugging		= false;	// for debugging
 	int 		numberOfColumns	= 4;	// number of columns of blocks
 	int 		numberOfRows	= 11;	// number of rows of blocks
 	Block[][]	blocks			= new Block[this.numberOfColumns][this.numberOfRows];
@@ -69,19 +69,21 @@ public class Board extends JPanel {
 	}
 
 	// the block class
-	private class MovableBlock extends Block{
+	private class MovableBlock extends Block {
 		private int		tempX;	// x coordinate of the block
 		private int		tempY;	// y coordinate of the block
 		private int		tempWidth;
 		private int		tempHeight;
 		private boolean	canDrop			= false;
+		private boolean	canMerge		= false;
 		private int		transformTime	= 100;
-		private int		transformTimer	= transformTime;
+		private int		transformTimer	= this.transformTime;
+		private int		mergeTime		= this.height;
+		private int		mergeTimer		= -1;
 		// private boolean visible = false;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
-			System.out.println(thisBoard.height);
 			Random rand	= new Random();
 			int n		= rand.nextInt(thisBoard.numberOfColumns);
 			this.x		= this.width * n;
@@ -101,14 +103,31 @@ public class Board extends JPanel {
 			}
 			if (this.canDrop) {
 				this.drop();
+				if (this.canMerge) {
+					this.merge();
+				}
 				int column = this.x / this.width;
-				if (this.y == thisBoard.height - this.height * (numbersOfStacks[column] + 1)) {
-					this.canDrop = false;
+				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					int row = this.y / this.height;
-					thisBoard.blocks[column][row].setVisible(true);
-					numbersOfStacks[column]++;
-					thisBoard.movableBlock		= thisBoard.nextMovableBlock;
-					thisBoard.nextMovableBlock	= new MovableBlock();
+					if (row+1 < thisBoard.numberOfRows) {
+						System.out.println(this.color);
+						System.out.println(thisBoard.blocks[column][row+1].color);
+						System.out.println(this.compareTo(thisBoard.blocks[column][row+1]));
+					}
+					if (row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+						thisBoard.blocks[column][row+1].setVisible(false);
+						this.canMerge	= true;
+						this.tempHeight	= this.height * 2;
+						this.mergeTimer	= this.mergeTime;
+						thisBoard.numbersOfStacks[column]--;
+					} else {
+						this.canDrop = false;
+						thisBoard.blocks[column][row].setColor(this.color);
+						thisBoard.blocks[column][row].setVisible(true);
+						numbersOfStacks[column]++;
+						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
+						thisBoard.nextMovableBlock	= new MovableBlock();
+					}
 				}
 			}
 		}
@@ -138,12 +157,27 @@ public class Board extends JPanel {
 				this.x += this.width;
 			}
 		}
+
+		private void merge() {
+			if (this.mergeTimer >= 0) {
+				System.out.println("merging");
+				this.tempWidth	= this.width;
+				this.tempHeight	= this.height + this.mergeTimer * this.height / this.mergeTime;
+				this.tempX		= this.x;
+				this.tempY		= this.y;
+				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1);
+				this.mergeTimer--;
+			} else {
+				System.out.println("stop");
+				this.canMerge	= false;
+			}
+		}
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
 			if (this.visible) {
 				g2d.setColor(this.color);
-				if (this.transformTimer >= 0) {
+				if (this.transformTimer >= 0 || this.mergeTimer >= 0) {
 					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
@@ -154,16 +188,14 @@ public class Board extends JPanel {
 				}
 			}
 		}
-
 	}
 
 	private class Block implements Comparable<Block> {
-		public int x;	// x coordinate of the block
-		public int y;	// y coordinate of the block
-		public int width = thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
-		public int height = thisBoard.height/(thisBoard.getNumberOfRows());
-		public Color color = Color.RED;	// color of the block
-		public boolean visible = false;
+		public int x, y;	// x coordinate of the block
+		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
+		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());
+		public Color	color	= new Color(200, 200, 200);	// color of the block
+		public boolean	visible	= false;
 
 		public Block() {
 		}
@@ -181,12 +213,17 @@ public class Board extends JPanel {
 		private void paint(Graphics2D g2d) {
 			if (this.visible) {
 				int width, height, x, y;
-				width = this.width;
-				height = this.height;
+				width	= this.width;
+				height	= this.height;
 				x = this.x;
 				y = this.y;
+				g2d.setColor(this.color);
 				g2d.fillRect(x, y, width, height);
 			}
+		}
+
+		private void setColor(Color color) {
+			this.color = color;
 		}
 
 		public int compareTo(Block block) {
@@ -200,7 +237,7 @@ public class Board extends JPanel {
 
 	public class MyKeyListener implements KeyListener {
 		public void keyPressed(KeyEvent e) {
-			if (thisBoard.movableBlock.canDrop) {
+			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
 				if (KeyEvent.getKeyText(e.getKeyCode()) == "Left") {
 					thisBoard.movableBlock.moveLeft();
 				} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
