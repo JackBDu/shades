@@ -19,14 +19,15 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 	debugging		= false;	// for debugging
-	int 		numberOfColumns	= 4;	// number of columns of blocks
-	int 		numberOfRows	= 11;	// number of rows of blocks
-	Block[][]	blocks			= new Block[this.numberOfColumns][this.numberOfRows];
-	int[]		numbersOfStacks = new int[this.numberOfColumns];
-	Board		thisBoard		= this;		// used for later reference
-	int height, width;
-	MovableBlock movableBlock, nextMovableBlock;
+	boolean 			debugging		= false;	// for debugging
+	int 				numberOfColumns	= 4;	// number of columns of blocks
+	int 				numberOfRows	= 11;	// number of rows of blocks
+	Block[][]			blocks			= new Block[this.numberOfColumns][this.numberOfRows];
+	DroppableBlock[][]	droppableBlocks = new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
+	int[]				numbersOfStacks = new int[this.numberOfColumns];
+	Board				thisBoard		= this;		// used for later reference
+	int					height, width;
+	MovableBlock		movableBlock, nextMovableBlock;
 	
 	public Board(int w, int h) {
 		KeyListener listener = new MyKeyListener();
@@ -44,6 +45,9 @@ public class Board extends JPanel {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height;
 				this.blocks[c][r] = new Block(x, y);
+				if (r < this.numberOfRows - 1) {
+					this.droppableBlocks[c][r] = new DroppableBlock(x, y);
+				}
 			}
 		}
 	}
@@ -68,19 +72,129 @@ public class Board extends JPanel {
 		this.numberOfColumns = n;
 	}
 
+	public class MyKeyListener implements KeyListener {
+		public void keyPressed(KeyEvent e) {
+			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
+				if (KeyEvent.getKeyText(e.getKeyCode()) == "Left") {
+					thisBoard.movableBlock.moveLeft();
+				} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
+					thisBoard.movableBlock.moveRight();
+				}
+			}
+		}
+		@Override
+		public void keyTyped(KeyEvent e) {
+		}
+
+		public void keyReleased(KeyEvent e) {
+
+		}
+	}
+
+	public void handleDisappear() {
+		int		disappearingRow	= -1;
+		int[]	stacks 			= Arrays.copyOf(this.numbersOfStacks, this.numbersOfStacks.length);
+		Arrays.sort(stacks);
+		int		stackMin		= stacks[0];
+		for (int r = this.numberOfRows - stackMin; r < this.numberOfRows; r++) {
+			boolean shouldDisappear = true;
+			for (int c = 1; c < this.numberOfColumns; c++) {
+				if (this.blocks[c-1][r].compareTo(this.blocks[c][r]) == 0) {
+					shouldDisappear = false;
+				}
+			}
+			if (shouldDisappear) {
+				disappearingRow = r;
+				break;
+			}
+		}
+		if (disappearingRow != -1) {
+			for (int c = 0; c < this.numberOfColumns; c++) {
+				thisBoard.blocks[c][disappearingRow].setVisible(false);
+				thisBoard.numbersOfStacks[c]--;
+			}
+			for (int r = 0; r < disappearingRow; r++) {
+				for (int c = 1; c < this.numberOfColumns; c++) {
+					Block thisBlock = this.blocks[c][r];
+					if (thisBlock.getVisible()) {
+						System.out.println("visible");
+						thisBlock.setVisible(false);
+						thisBoard.droppableBlocks[c][r].setVisible(true);
+						thisBoard.droppableBlocks[c][r].setDroppable(true);
+						thisBoard.droppableBlocks[c][r].setColor(thisBlock.color);
+					}
+				}
+			}
+		}
+	}
+
+	// paint the whole board
+	public void paint(Graphics g) {
+		super.paint(g);
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		this.movableBlock.paint(g2d);
+
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
+				this.blocks[c][r].paint(g2d);
+				if (r < this.numberOfRows - 1) {
+					this.droppableBlocks[c][r].paint(g2d);
+				}
+			}
+		}
+		this.nextMovableBlock.paint(g2d);
+	}
+
+	// update the status
+	public void update() {
+		this.movableBlock.update();
+		this.handleDisappear();
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows - 1; r++) {
+				this.droppableBlocks[c][r].update();
+			}
+		}
+	}
+	
+	// main function for the board
+	public static void main(String[] args) throws InterruptedException {
+		JFrame frame	= new JFrame("Shades");
+		Board board		= new Board(300, 480);
+
+		// initialize the frame
+		frame.add(board);
+		frame.setSize(300, 495);
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setResizable(false);
+
+		// initialize the board
+		// board.setSize(frame.getWidth(), frame.getHeight());
+		board.setNumberOfRows(11);
+		board.setNumberOfColumns(4);
+
+		while (true) {
+			board.update();
+			board.repaint();
+			Thread.sleep(5);
+		}
+	}
+
 	// the block class
 	private class MovableBlock extends Block {
-		private int		tempX;	// x coordinate of the block
-		private int		tempY;	// y coordinate of the block
-		private int		tempWidth;
-		private int		tempHeight;
-		private boolean	canDrop			= false;
-		private boolean	canMerge		= false;
-		private int		transformTime	= 100;
-		private int		transformTimer	= this.transformTime;
-		private int		mergeTime		= this.height;
-		private int		mergeTimer		= -1;
-		// private boolean visible = false;
+		public int		tempX;	// x coordinate of the block
+		public int		tempY;	// y coordinate of the block
+		public int		tempWidth;
+		public int		tempHeight;
+		public boolean	canDrop			= false;
+		public boolean	canMerge		= false;
+		public int		mergeTime		= this.height;
+		public int		mergeTimer		= -1;
+		public int		transformTime	= 100;
+		public int		transformTimer	= this.transformTime;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
@@ -92,7 +206,7 @@ public class Board extends JPanel {
 			this.color	= new Color(m, m, m);
 		}
 
-		private void update() {
+		public void update() {
 			if (this.transformTimer >= 0) {
 				this.tempWidth	= thisBoard.width - ((thisBoard.numberOfColumns - 1) * this.width - this.transformTimer * (thisBoard.numberOfColumns - 1) * this.width / this.transformTime);
 				this.tempHeight	= this.height;
@@ -134,11 +248,7 @@ public class Board extends JPanel {
 			}
 		}
 
-		private void setVisible(boolean b) {
-			this.visible = b;
-		}
-
-		private void drop() {
+		public void drop() {
 			this.y++;
 		}
 
@@ -160,7 +270,7 @@ public class Board extends JPanel {
 			}
 		}
 
-		private void merge() {
+		public void merge() {
 			if (this.mergeTimer >= 0) {
 				System.out.println("merging");
 				this.tempWidth	= this.width;
@@ -176,7 +286,7 @@ public class Board extends JPanel {
 		}
 		
 		// paint the block
-		private void paint(Graphics2D g2d) {
+		public void paint(Graphics2D g2d) {
 			if (this.visible) {
 				g2d.setColor(this.color);
 				if (this.transformTimer >= 0 || this.mergeTimer >= 0) {
@@ -192,8 +302,54 @@ public class Board extends JPanel {
 		}
 	}
 
+	private class DroppableBlock extends MovableBlock {
+
+		public DroppableBlock(int x, int y) {
+			this.x = x;
+			this.y = y;
+			this.tempX = this.x;
+			this.tempY = this.y;
+			this.transformTimer = -1;
+			this.canDrop = false;
+			this.color	= thisBoard.blocks[this.x/this.width][this.y/this.height].color;
+		}
+
+		public void setDroppable(boolean b) {
+			this.canDrop = b;
+		}
+
+		public void update() {
+			if (this.canDrop) {
+				System.out.println("dropping"+this.y);
+				this.drop();
+				if (this.canMerge) {
+					this.merge();
+				}
+				int column = this.x / this.width;
+				if (this.y == this.tempY+this.height) {
+					System.out.println("reach");
+					int row = this.y / this.height;
+					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+						thisBoard.blocks[column][row+1].setVisible(false);
+						this.canMerge	= true;
+						this.tempHeight	= this.height * 2;
+						this.mergeTimer	= this.mergeTime;
+						thisBoard.numbersOfStacks[column]--;
+					} else {
+						this.canDrop = false;
+						thisBoard.blocks[column][row].setColor(this.color);
+						thisBoard.blocks[column][row].setVisible(true);
+						this.setVisible(false);
+						this.x = this.tempX;
+						this.y = this.tempY;
+					}
+				}
+			}
+		}
+	}
+
 	private class Block implements Comparable<Block> {
-		public int x, y;	// x coordinate of the block
+		public int		x, y;	// x coordinate of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
 		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());
 		public Color	color	= new Color(230, 230, 230);	// color of the block
@@ -207,8 +363,12 @@ public class Board extends JPanel {
 			this.y = y;
 		}
 
-		private void setVisible(boolean b) {
+		public void setVisible(boolean b) {
 			this.visible = b;
+		}
+
+		public boolean getVisible() {
+			return this.visible;
 		}
 		
 		// paint the block
@@ -224,7 +384,7 @@ public class Board extends JPanel {
 			}
 		}
 
-		private void setColor(Color color) {
+		public void setColor(Color color) {
 			this.color = color;
 		}
 
@@ -233,73 +393,6 @@ public class Board extends JPanel {
 				return 1;
 			}
 			return 0;
-		}
-
-	}
-
-	public class MyKeyListener implements KeyListener {
-		public void keyPressed(KeyEvent e) {
-			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
-				if (KeyEvent.getKeyText(e.getKeyCode()) == "Left") {
-					thisBoard.movableBlock.moveLeft();
-				} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
-					thisBoard.movableBlock.moveRight();
-				}
-			}
-		}
-		@Override
-		public void keyTyped(KeyEvent e) {
-		}
-
-		public void keyReleased(KeyEvent e) {
-
-		}
-	}
-
-
-	// paint the whole board
-	public void paint(Graphics g) {
-		super.paint(g);
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		this.movableBlock.paint(g2d);
-
-		for (int c = 0; c < this.numberOfColumns; c++) {
-			for (int r = 0; r < this.numberOfRows; r++) {
-				this.blocks[c][r].paint(g2d);
-			}
-		}
-		this.nextMovableBlock.paint(g2d);
-	}
-
-	// update the status
-	public void update() {
-		this.movableBlock.update();
-	}
-	
-	// main function for the board
-	public static void main(String[] args) throws InterruptedException {
-		JFrame frame	= new JFrame("Shades");
-		Board board		= new Board(300, 480);
-
-		// initialize the frame
-		frame.add(board);
-		frame.setSize(300, 495);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setResizable(false);
-
-		// initialize the board
-		// board.setSize(frame.getWidth(), frame.getHeight());
-		board.setNumberOfRows(11);
-		board.setNumberOfColumns(4);
-
-		while (true) {
-			board.update();
-			board.repaint();
-			Thread.sleep(5);
 		}
 	}
 }
