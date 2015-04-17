@@ -33,7 +33,7 @@ public class Board extends JPanel {
 		this.addKeyListener(listener);
 		this.width	= w;
 		this.height	= h;
-		this.setBackground(Color.BLACK);
+		this.setBackground(new Color(100, 100, 50));
 		this.setFocusable(true);
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
@@ -88,6 +88,8 @@ public class Board extends JPanel {
 			int n		= rand.nextInt(thisBoard.numberOfColumns);
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
+			int m		= this.color.getRed() - rand.nextInt(5) * 43;
+			this.color	= new Color(m, m, m);
 		}
 
 		private void update() {
@@ -114,7 +116,7 @@ public class Board extends JPanel {
 						System.out.println(thisBoard.blocks[column][row+1].color);
 						System.out.println(this.compareTo(thisBoard.blocks[column][row+1]));
 					}
-					if (row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
 						this.canMerge	= true;
 						this.tempHeight	= this.height * 2;
@@ -194,7 +196,7 @@ public class Board extends JPanel {
 		public int x, y;	// x coordinate of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
 		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());
-		public Color	color	= new Color(200, 200, 200);	// color of the block
+		public Color	color	= new Color(230, 230, 230);	// color of the block
 		public boolean	visible	= false;
 
 		public Block() {
