@@ -353,7 +353,7 @@ public class Board extends JPanel {
 		}
 
 		public void merge() {
-			if (this.mergeTimer >= 0) {
+			if (this.mergeTimer > 0) {
 				if (this.mergeTimer == 1) {
 					thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setVisible(false);
 				}
@@ -415,8 +415,8 @@ public class Board extends JPanel {
 					System.out.println("reach");
 					int row = this.y / this.height;
 					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
-						thisBoard.blocks[column][row+1].setVisible(false);
-						this.tempHeight = 2 * this.height;
+						this.tempX				= this.x;
+						this.tempY				= this.y;
 						this.canMerge	= true;
 						this.tempHeight	= this.height * 2;
 						this.mergeTimer	= this.mergeTime;
