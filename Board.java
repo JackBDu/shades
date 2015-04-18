@@ -19,7 +19,7 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 			debugging		= false;	// for 
+	boolean 			debugging		= true;	// for 
 	boolean				isDisappearing	= false;
 	int 				numberOfColumns	= 4;	// number of columns of blocks
 	int 				numberOfRows	= 11;	// number of rows of blocks
@@ -35,7 +35,7 @@ public class Board extends JPanel {
 		this.addKeyListener(listener);
 		this.width	= w;
 		this.height	= h;
-		this.setBackground(new Color(100, 100, 50));
+		this.setBackground(new Color(150, 150, 50));
 		this.setFocusable(true);
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
@@ -44,8 +44,9 @@ public class Board extends JPanel {
 			this.numbersOfStacks[c] = 0;
 			for (int r = 0; r < this.numberOfRows; r++) {
 				int x = c * this.movableBlock.width;
-				int y = r * this.movableBlock.height;
+				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
+				System.out.println(y);
 				if (r < this.numberOfRows - 1) {
 					this.droppableBlocks[c][r] = new DroppableBlock(x, y);
 				}
@@ -169,7 +170,7 @@ public class Board extends JPanel {
 
 		// initialize the frame
 		frame.add(board);
-		frame.setSize(300, 495);
+		frame.setSize(300, 502);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -183,7 +184,7 @@ public class Board extends JPanel {
 		while (true) {
 			board.update();
 			board.repaint();
-			Thread.sleep(5);
+			Thread.sleep(3);
 		}
 	}
 
@@ -206,7 +207,7 @@ public class Board extends JPanel {
 			int n		= rand.nextInt(thisBoard.numberOfColumns);
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
-			int m		= this.color.getRed() - rand.nextInt(5) * 43;
+			int m		= this.color.getRed() - rand.nextInt(3) * 43;
 			this.color	= new Color(m, m, m);
 		}
 
@@ -230,12 +231,10 @@ public class Board extends JPanel {
 				}
 				int column = this.x / this.width;
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
+					System.out.println("movable"+this.y);
+					System.out.println("height"+this.height);
+					System.out.println("span"+(this.height * (thisBoard.numbersOfStacks[column] + 1)));
 					int row = this.y / this.height;
-					if (row+1 < thisBoard.numberOfRows) {
-						System.out.println(this.color);
-						System.out.println(thisBoard.blocks[column][row+1].color);
-						System.out.println(this.compareTo(thisBoard.blocks[column][row+1]));
-					}
 					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
 						this.canMerge	= true;
@@ -246,12 +245,16 @@ public class Board extends JPanel {
 						this.canDrop = false;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
+						System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
 						numbersOfStacks[column]++;
 						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 						thisBoard.nextMovableBlock	= new MovableBlock();
 						thisBoard.isDisappearing	= true;
 						thisBoard.handleDisappear();
 					}
+					if (debugging) {
+						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
+					}	
 				}
 			}
 		}
@@ -302,10 +305,10 @@ public class Board extends JPanel {
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
 				}
-				if (debugging) {
-					System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+this.width+", "+this.height+")");
-					System.out.println(this.color.getRed());
-				}
+				// if (debugging) {
+				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+this.width+", "+this.height+")");
+				// 	System.out.println(this.color.getRed());
+				// }
 			}
 		}
 	}
@@ -339,6 +342,7 @@ public class Board extends JPanel {
 					int row = this.y / this.height;
 					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
+						this.tempHeight = 2 * this.height;
 						this.canMerge	= true;
 						this.tempHeight	= this.height * 2;
 						this.mergeTimer	= this.mergeTime;
@@ -351,6 +355,9 @@ public class Board extends JPanel {
 						this.setVisible(false);
 						this.x = this.tempX;
 						this.y = this.tempY;
+					}
+					if (debugging) {
+						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
 					}
 				}
 			}
