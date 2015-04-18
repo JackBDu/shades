@@ -89,21 +89,31 @@ public class Board extends JPanel {
 
 	public class MyKeyListener implements KeyListener {
 		public void keyPressed(KeyEvent e) {
+			int keyCode = e.getKeyCode();
 			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
-				if (KeyEvent.getKeyText(e.getKeyCode()) == "Left") {
+				if (KeyEvent.getKeyText(keyCode) == "Left") {
 					thisBoard.movableBlock.moveLeft();
-				} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
+				} else if (KeyEvent.getKeyText(keyCode) == "Right") {
 					thisBoard.movableBlock.moveRight();
+				} else if (keyCode < 58 && keyCode > 47) { // number key move to
+					if (keyCode == 48) { // 0 key
+						thisBoard.movableBlock.moveTo(9);
+					} else {
+						thisBoard.movableBlock.moveTo(keyCode - 49);
+					}
+					
 				}
 			}
-			if (KeyEvent.getKeyText(e.getKeyCode()) == "Space") {
+			if (KeyEvent.getKeyText(keyCode) == "Space") {
 				thisBoard.isPaused = !thisBoard.isPaused;
 				if (debugging) {
-					System.out.println(KeyEvent.getKeyText(e.getKeyCode())+" pressed");
 					System.out.println(thisBoard.isPaused);
 				}
-			} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Down") {
+			} else if (KeyEvent.getKeyText(keyCode) == "Down") {
 				thisBoard.sleepTime = 1;
+			}
+			if (debugging) {
+				System.out.println(KeyEvent.getKeyText(keyCode)+" pressed");
 			}
 		}
 		@Override
@@ -298,6 +308,15 @@ public class Board extends JPanel {
 				}
 			}
 		}
+
+		private void moveTo(int n) {
+			if (!thisBoard.isPaused && n >= 0 && n < thisBoard.numberOfColumns && thisBoard.numbersOfStacks[n] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+				this.x = this.width * n;
+				if (debugging) {
+					System.out.println("Block moved to column "+n);
+				}
+			}
+		}		
 
 		private void moveRight() {
 			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
