@@ -39,7 +39,7 @@ public class Board extends JPanel {
 		this.addKeyListener(listener);
 		this.width	= w;
 		this.height	= h;
-		this.setBackground(new Color(150, 150, 50));
+		this.setBackground(new Color(255, 255, 255));
 		this.setFocusable(true);
 		this.reset();
 	}
@@ -52,6 +52,7 @@ public class Board extends JPanel {
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
 		this.movableBlock.setVisible(true);
+		this.movableBlock.setTransformable(true);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			this.numbersOfStacks[c] = 0;
 			for (int r = 0; r < this.numberOfRows; r++) {
@@ -185,6 +186,7 @@ public class Board extends JPanel {
 	// update the status
 	public void update() {
 		this.movableBlock.update();
+		this.nextMovableBlock.update();
 		this.info.update();
 		if (this.isDisappearing) {
 			for (int c = 0; c < this.numberOfColumns; c++) {
@@ -229,11 +231,14 @@ public class Board extends JPanel {
 		public int		tempWidth;
 		public int		tempHeight;
 		public boolean	canDrop			= false;
+		public boolean	canTransform	= false;
 		public boolean	canMerge		= false;
 		public int		mergeTime		= this.height;
 		public int		mergeTimer		= -1;
 		public int		transformTime	= 100;
 		public int		transformTimer	= this.transformTime;
+		public int		appearTime		= 100;
+		public int		appearTimer		= this.appearTime;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
@@ -242,16 +247,22 @@ public class Board extends JPanel {
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
 			int m		= this.color.getRed() - rand.nextInt(4) * 43;
-			this.color	= new Color(m, m, m);
+			this.color	= new Color(m, m, m, 0);
 		}
 
 		public void update() {
+			if (this.appearTimer >= 0) {
+				this.color = new Color(this.color.getRed(), this.color.getGreen(), this.color.getBlue(), (this.appearTime-this.appearTimer)*255/this.appearTime);
+				if (this.visible) {
+					this.appearTimer--;
+				}
+			}
 			if (this.transformTimer >= 0) {
 				this.tempWidth	= thisBoard.width - ((thisBoard.numberOfColumns - 1) * this.width - this.transformTimer * (thisBoard.numberOfColumns - 1) * this.width / this.transformTime);
 				this.tempHeight	= this.height;
 				this.tempX		= this.x - this.x * this.transformTimer / this.transformTime;
 				this.tempY		= this.y;
-				if (!thisBoard.isDisappearing) {
+				if (!thisBoard.isDisappearing && this.canTransform) {
 					this.transformTimer--;
 				}
 			} else {
@@ -283,6 +294,7 @@ public class Board extends JPanel {
 						thisBoard.blocks[column][row].setVisible(true);
 						System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
 						numbersOfStacks[column]++;
+						thisBoard.nextMovableBlock.setTransformable(true);
 						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 						thisBoard.nextMovableBlock	= new MovableBlock();
 						thisBoard.isDisappearing	= true;
@@ -337,13 +349,17 @@ public class Board extends JPanel {
 			}
 		}
 
+		private void setTransformable(boolean b) {
+			this.canTransform = b;
+		}
+
 		public void merge() {
 			if (this.mergeTimer >= 0) {
 				this.tempWidth	= this.width;
 				this.tempHeight	= this.height + this.mergeTimer * this.height / this.mergeTime;
 				this.tempX		= this.x;
 				this.tempY		= this.y;
-				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1);
+				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
 				this.mergeTimer--;
 			} else {
 				System.out.println("stop");
@@ -360,10 +376,9 @@ public class Board extends JPanel {
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
 				}
-				// if (debugging) {
-				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+x+", "+y+"); size: "+this.width+", "+this.height+")");
-				// 	System.out.println(this.color.getRed());
-				// }
+				if (debugging) {
+					System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
+				}
 			}
 		}
 	}
@@ -431,7 +446,7 @@ public class Board extends JPanel {
 		public int		x, y;														// stores x and y coordinates of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// stores width of the block, the number floored down
 		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());	// stores height of the block, the number floored down
-		public Color	color	= new Color(230, 230, 230);							// stores color of the block
+		public Color	color	= new Color(230, 230, 230, 255);							// stores color of the block
 		public boolean	visible	= false;											// stores whether or not the block is visible
 
 		public Block() {
@@ -479,7 +494,7 @@ public class Board extends JPanel {
 		public	int	score		= 0;						// stores the score that player earns
 		public	int level		= 1;						// stores the current level of the game
 		private int	x			= thisBoard.width / 2;		// stores the x coordinate of the score that is displayed
-		private int	y			= thisBoard.height / 20;	// stores the y coordinate of the score that is displayed
+		private int	y			= thisBoard.height / 15;	// stores the y coordinate of the score that is displayed
 		private int fontSize	= thisBoard.height / 20;	// stores the font size of the score that is displayed
 
 
