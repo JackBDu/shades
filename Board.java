@@ -21,6 +21,9 @@ import java.util.*;
 public class Board extends JPanel {
 	boolean 			debugging		= true;	// for 
 	boolean				isDisappearing	= false;
+	boolean				isPaused		= false;
+	int					levelSleepTime	= 5;
+	int 				sleepTime		= levelSleepTime;
 	int 				numberOfColumns	= 4;	// number of columns of blocks
 	int 				numberOfRows	= 11;	// number of rows of blocks
 	Block[][]			blocks			= new Block[this.numberOfColumns][this.numberOfRows];
@@ -46,7 +49,6 @@ public class Board extends JPanel {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
-				System.out.println(y);
 				if (r < this.numberOfRows - 1) {
 					this.droppableBlocks[c][r] = new DroppableBlock(x, y);
 				}
@@ -82,6 +84,15 @@ public class Board extends JPanel {
 				} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Right") {
 					thisBoard.movableBlock.moveRight();
 				}
+			}
+			if (KeyEvent.getKeyText(e.getKeyCode()) == "Space") {
+				thisBoard.isPaused = !thisBoard.isPaused;
+				if (debugging) {
+					System.out.println(KeyEvent.getKeyText(e.getKeyCode())+" pressed");
+					System.out.println(thisBoard.isPaused);
+				}
+			} else if (KeyEvent.getKeyText(e.getKeyCode()) == "Down") {
+				thisBoard.sleepTime = 1;
 			}
 		}
 		@Override
@@ -119,7 +130,6 @@ public class Board extends JPanel {
 				for (int c = 0; c < this.numberOfColumns; c++) {
 					Block thisBlock = this.blocks[c][r];
 					if (thisBlock.getVisible()) {
-						System.out.println("visible");
 						thisBlock.setVisible(false);
 						thisBoard.droppableBlocks[c][r].setVisible(true);
 						thisBoard.droppableBlocks[c][r].setDroppable(true);
@@ -181,10 +191,12 @@ public class Board extends JPanel {
 		board.setNumberOfRows(11);
 		board.setNumberOfColumns(4);
 
-		while (true) {
-			board.update();
+		while(true) {
+			if (!board.isPaused) {
+				board.update();
+			}
 			board.repaint();
-			Thread.sleep(3);
+			Thread.sleep(board.sleepTime);
 		}
 	}
 
@@ -231,9 +243,6 @@ public class Board extends JPanel {
 				}
 				int column = this.x / this.width;
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
-					System.out.println("movable"+this.y);
-					System.out.println("height"+this.height);
-					System.out.println("span"+(this.height * (thisBoard.numbersOfStacks[column] + 1)));
 					int row = this.y / this.height;
 					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
@@ -241,6 +250,9 @@ public class Board extends JPanel {
 						this.tempHeight	= this.height * 2;
 						this.mergeTimer	= this.mergeTime;
 						thisBoard.numbersOfStacks[column]--;
+						if (debugging) {
+							System.out.println("Merging block("+this.y/this.height+", "+this.x/this.width+")");
+						}
 					} else {
 						this.canDrop = false;
 						thisBoard.blocks[column][row].setColor(this.color);
@@ -250,6 +262,7 @@ public class Board extends JPanel {
 						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 						thisBoard.nextMovableBlock	= new MovableBlock();
 						thisBoard.isDisappearing	= true;
+						thisBoard.sleepTime			= thisBoard.levelSleepTime;
 						thisBoard.handleDisappear();
 					}
 					if (debugging) {
@@ -264,26 +277,25 @@ public class Board extends JPanel {
 		}
 
 		private void moveLeft() {
-			if (debugging) {
-				System.out.println("block moving left");
-			}
-			if (this.x > 0 && thisBoard.numbersOfStacks[this.x/this.width-1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+			if (!thisBoard.isPaused && this.x > 0 && thisBoard.numbersOfStacks[this.x/this.width-1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
 				this.x -= this.width;
+				if (debugging) {
+					System.out.println("Block moved left");
+				}
 			}
 		}
 
 		private void moveRight() {
-			if (debugging) {
-				System.out.println("block moving right");
-			}
-			if (this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
 				this.x += this.width;
+				if (debugging) {
+					System.out.println("Block moved right");
+				}
 			}
 		}
 
 		public void merge() {
 			if (this.mergeTimer >= 0) {
-				System.out.println("merging");
 				this.tempWidth	= this.width;
 				this.tempHeight	= this.height + this.mergeTimer * this.height / this.mergeTime;
 				this.tempX		= this.x;
@@ -346,6 +358,9 @@ public class Board extends JPanel {
 						this.canMerge	= true;
 						this.tempHeight	= this.height * 2;
 						this.mergeTimer	= this.mergeTime;
+						if (debugging) {
+							System.out.println("Merging block("+this.y/this.height+", "+this.x/this.width+")");
+						}
 						thisBoard.numbersOfStacks[column]--;
 					} else {
 						thisBoard.handleDisappear();
