@@ -26,9 +26,9 @@ public class Board extends JPanel {
 	int 				sleepTime		= levelSleepTime;
 	int 				numberOfColumns	= 4;	// number of columns of blocks
 	int 				numberOfRows	= 11;	// number of rows of blocks
-	Block[][]			blocks			= new Block[this.numberOfColumns][this.numberOfRows];
-	DroppableBlock[][]	droppableBlocks = new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
-	int[]				numbersOfStacks = new int[this.numberOfColumns];
+	Block[][]			blocks;
+	DroppableBlock[][]	droppableBlocks;
+	int[]				numbersOfStacks;
 	Board				thisBoard		= this;		// used for later reference
 	int					height, width;
 	MovableBlock		movableBlock, nextMovableBlock;
@@ -40,6 +40,13 @@ public class Board extends JPanel {
 		this.height	= h;
 		this.setBackground(new Color(150, 150, 50));
 		this.setFocusable(true);
+		this.reset();
+	}
+
+	private void reset() {
+		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows];
+		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
+		this.numbersOfStacks 	= new int[this.numberOfColumns];
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
 		this.movableBlock.setVisible(true);
@@ -69,11 +76,13 @@ public class Board extends JPanel {
 	// set the number of rows of blocks
 	private void setNumberOfRows(int n) {
 		this.numberOfRows = n;
+		this.reset();
 	}
 
 	// set the number of columns of blocks
 	private void setNumberOfColumns(int n) {
 		this.numberOfColumns = n;
+		this.reset();
 	}
 
 	public class MyKeyListener implements KeyListener {
@@ -219,7 +228,7 @@ public class Board extends JPanel {
 			int n		= rand.nextInt(thisBoard.numberOfColumns);
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
-			int m		= this.color.getRed() - rand.nextInt(3) * 43;
+			int m		= this.color.getRed() - rand.nextInt(4) * 43;
 			this.color	= new Color(m, m, m);
 		}
 
@@ -244,7 +253,7 @@ public class Board extends JPanel {
 				int column = this.x / this.width;
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					int row = this.y / this.height;
-					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
 						this.canMerge	= true;
 						this.tempHeight	= this.height * 2;
