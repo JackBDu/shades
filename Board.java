@@ -22,7 +22,7 @@ public class Board extends JPanel {
 	boolean 			debugging		= true;				// for debugging
 	boolean				isDisappearing	= false; 			// whether or not one row is disappearing
 	boolean				isPaused		= false;			// whether or not the game is paused
-	int					levelSleepTime	= 5;				// thread sleep time for current level
+	int					levelSleepTime	= 10;				// thread sleep time for current level
 	int 				sleepTime		= levelSleepTime;	// current sleep time // will be decreased when speed up
 	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 				numberOfRows	= 11;				// default value for number of rows of blocks
@@ -278,9 +278,9 @@ public class Board extends JPanel {
 					thisBoard.sleepTime = thisBoard.levelSleepTime;
 					int row = this.y / this.height;
 					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
-						thisBoard.blocks[column][row+1].setVisible(false);
 						this.canMerge			= true;
-						this.tempHeight			= this.height * 2;
+						this.tempX				= this.x;
+						this.tempY				= this.y;
 						this.mergeTimer			= this.mergeTime;
 						thisBoard.info.score	= thisBoard.info.score + 4;
 						thisBoard.numbersOfStacks[column]--;
@@ -354,12 +354,12 @@ public class Board extends JPanel {
 
 		public void merge() {
 			if (this.mergeTimer >= 0) {
-				this.tempWidth	= this.width;
-				this.tempHeight	= this.height + this.mergeTimer * this.height / this.mergeTime;
-				this.tempX		= this.x;
-				this.tempY		= this.y;
+				if (this.mergeTimer == 1) {
+					thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setVisible(false);
+				}
 				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
 				this.mergeTimer--;
+				thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
 			} else {
 				System.out.println("stop");
 				this.canMerge	= false;
@@ -370,7 +370,7 @@ public class Board extends JPanel {
 		public void paint(Graphics2D g2d) {
 			if (this.visible) {
 				g2d.setColor(this.color);
-				if (this.transformTimer >= 0 || this.mergeTimer >= 0) {
+				if (this.transformTimer >= 0) {
 					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
