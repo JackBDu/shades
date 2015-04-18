@@ -169,9 +169,6 @@ public class Board extends JPanel {
 		super.paint(g);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		this.movableBlock.paint(g2d);
-		this.info.paint(g2d);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			for (int r = 0; r < this.numberOfRows; r++) {
 				this.blocks[c][r].paint(g2d);
@@ -180,7 +177,9 @@ public class Board extends JPanel {
 				}
 			}
 		}
+		this.movableBlock.paint(g2d);
 		this.nextMovableBlock.paint(g2d);
+		this.info.paint(g2d);
 	}
 
 	// update the status
@@ -276,6 +275,7 @@ public class Board extends JPanel {
 				}
 				int column = this.x / this.width;
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
+					thisBoard.sleepTime = thisBoard.levelSleepTime;
 					int row = this.y / this.height;
 					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
@@ -298,7 +298,6 @@ public class Board extends JPanel {
 						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 						thisBoard.nextMovableBlock	= new MovableBlock();
 						thisBoard.isDisappearing	= true;
-						thisBoard.sleepTime			= thisBoard.levelSleepTime;
 						thisBoard.handleDisappear();
 					}
 					if (debugging) {
@@ -376,9 +375,9 @@ public class Board extends JPanel {
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
 				}
-				if (debugging) {
-					System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
-				}
+				// if (debugging) {
+				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
+				// }
 			}
 		}
 	}
