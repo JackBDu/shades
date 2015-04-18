@@ -311,7 +311,16 @@ public class Board extends JPanel {
 
 		private void moveTo(int n) {
 			if (!thisBoard.isPaused && n >= 0 && n < thisBoard.numberOfColumns && thisBoard.numbersOfStacks[n] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
-				this.x = this.width * n;
+				int c = this.x/this.width;
+				if (c < n) {
+					for (int i = c; i < n; i++) {
+						this.moveRight();
+					}
+				} else if (c > n) {
+					for (int i = c; i > n; i--) {
+						this.moveLeft();
+					}
+				}
 				if (debugging) {
 					System.out.println("Block moved to column "+n);
 				}
