@@ -26,10 +26,11 @@ public class Board extends JPanel {
 	int 				sleepTime		= levelSleepTime;
 	int 				numberOfColumns	= 4;	// number of columns of blocks
 	int 				numberOfRows	= 11;	// number of rows of blocks
+	Board				thisBoard		= this;		// used for later reference
+	Info				info;
 	Block[][]			blocks;
 	DroppableBlock[][]	droppableBlocks;
 	int[]				numbersOfStacks;
-	Board				thisBoard		= this;		// used for later reference
 	int					height, width;
 	MovableBlock		movableBlock, nextMovableBlock;
 	
@@ -44,6 +45,7 @@ public class Board extends JPanel {
 	}
 
 	private void reset() {
+		this.info				= new Info();
 		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows];
 		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
 		this.numbersOfStacks 	= new int[this.numberOfColumns];
@@ -158,7 +160,7 @@ public class Board extends JPanel {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		this.movableBlock.paint(g2d);
-
+		this.info.paint(g2d);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			for (int r = 0; r < this.numberOfRows; r++) {
 				this.blocks[c][r].paint(g2d);
@@ -255,15 +257,17 @@ public class Board extends JPanel {
 					int row = this.y / this.height;
 					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						thisBoard.blocks[column][row+1].setVisible(false);
-						this.canMerge	= true;
-						this.tempHeight	= this.height * 2;
-						this.mergeTimer	= this.mergeTime;
+						this.canMerge			= true;
+						this.tempHeight			= this.height * 2;
+						this.mergeTimer			= this.mergeTime;
+						thisBoard.info.score	= thisBoard.info.score + 4;
 						thisBoard.numbersOfStacks[column]--;
 						if (debugging) {
 							System.out.println("Merging block("+this.y/this.height+", "+this.x/this.width+")");
 						}
 					} else {
 						this.canDrop = false;
+						thisBoard.info.score	= thisBoard.info.score + 2;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
 						System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
@@ -275,6 +279,7 @@ public class Board extends JPanel {
 						thisBoard.handleDisappear();
 					}
 					if (debugging) {
+						System.out.println("Score: "+thisBoard.info.score);
 						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
 					}	
 				}
@@ -433,6 +438,21 @@ public class Board extends JPanel {
 				return 1;
 			}
 			return 0;
+		}
+	}
+
+	public class Info {
+		public	int	score	= 0;
+		private int	x		= 10;
+		private int	y		= 20;
+
+		public Info() {
+		}
+		
+		// paint the block
+		private void paint(Graphics2D g2d) {
+			g2d.setColor(new Color(0, 0, 0));
+			g2d.drawString(Integer.toString(this.score), this.x, this.y);
 		}
 	}
 }
