@@ -185,6 +185,7 @@ public class Board extends JPanel {
 	// update the status
 	public void update() {
 		this.movableBlock.update();
+		this.info.update();
 		if (this.isDisappearing) {
 			for (int c = 0; c < this.numberOfColumns; c++) {
 				for (int r = 0; r < this.numberOfRows - 1; r++) {
@@ -471,6 +472,7 @@ public class Board extends JPanel {
 
 	public class Info {
 		public	int	score		= 0;
+		public	int level		= 1;
 		private int	x			= thisBoard.width / 2;
 		private int	y			= thisBoard.height / 20;
 		private int fontSize	= thisBoard.height / 20;
@@ -478,16 +480,22 @@ public class Board extends JPanel {
 
 		public Info() {
 		}
+
+		public void update() {
+			this.level = this.score / 500 + 1;
+		}
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
+			String scoreString = Integer.toString(this.score);
+			String levelString = "Level "+Integer.toString(this.level);
 			g2d.setFont(new Font("Arial", Font.PLAIN, this.fontSize));
 			g2d.setColor(new Color(0, 0, 0));
-			String scoreString = Integer.toString(this.score);
 			FontMetrics fm = g2d.getFontMetrics();
 		    this.x = (thisBoard.width - fm.stringWidth(scoreString)) / 2;
-		    System.out.println(fm.stringWidth(scoreString));
 			g2d.drawString(scoreString, this.x, this.y);
+			g2d.setFont(new Font("Arial", Font.PLAIN, this.fontSize * 4 / 5));
+			g2d.drawString(levelString, this.y/2, this.y);
 		}
 	}
 }
