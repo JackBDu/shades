@@ -19,20 +19,20 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 			debugging		= true;	// for 
-	boolean				isDisappearing	= false;
-	boolean				isPaused		= false;
-	int					levelSleepTime	= 5;
-	int 				sleepTime		= levelSleepTime;
-	int 				numberOfColumns	= 4;	// number of columns of blocks
-	int 				numberOfRows	= 11;	// number of rows of blocks
-	Board				thisBoard		= this;		// used for later reference
-	Info				info;
-	Block[][]			blocks;
-	DroppableBlock[][]	droppableBlocks;
-	int[]				numbersOfStacks;
-	int					height, width;
-	MovableBlock		movableBlock, nextMovableBlock;
+	boolean 			debugging		= true;				// for debugging
+	boolean				isDisappearing	= false; 			// whether or not one row is disappearing
+	boolean				isPaused		= false;			// whether or not the game is paused
+	int					levelSleepTime	= 5;				// thread sleep time for current level
+	int 				sleepTime		= levelSleepTime;	// current sleep time // will be decreased when speed up
+	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
+	int 				numberOfRows	= 11;				// default value for number of rows of blocks
+	Board				thisBoard		= this;				// for later reference
+	Info				info;								// stores the info when playing
+	Block[][]			blocks;								// stores the static blocks
+	DroppableBlock[][]	droppableBlocks;					// stores the blocks that can only drop
+	int[]				numbersOfStacks;					// stores the the number of blocks stacked for each column
+	int					height, width;						// stores the width and height of the Board
+	MovableBlock		movableBlock, nextMovableBlock;		// stores the current and next block that player can control
 	
 	public Board(int w, int h) {
 		KeyListener listener = new MyKeyListener();
@@ -126,10 +126,10 @@ public class Board extends JPanel {
 	}
 
 	public void handleDisappear() {
-		int		disappearingRow	= -1;
-		int[]	stacks 			= Arrays.copyOf(this.numbersOfStacks, this.numbersOfStacks.length);
-		Arrays.sort(stacks);
-		int		stackMin		= stacks[0];
+		int		disappearingRow	= -1;			// stores the row to disappear
+		int[]	stacks 			= Arrays.copyOf(this.numbersOfStacks, this.numbersOfStacks.length);	// make copy of the array so as to sort
+		Arrays.sort(stacks);					// sort the array in order to get minimun value
+		int		stackMin		= stacks[0];	// stores the minimum number of blocks stacked in one column
 		for (int r = this.numberOfRows - stackMin; r < this.numberOfRows; r++) {
 			boolean shouldDisappear = true;
 			for (int c = 1; c < this.numberOfColumns; c++) {
@@ -368,16 +368,21 @@ public class Board extends JPanel {
 		}
 	}
 
+	/*
+	 * DroopableBlock is used to show the dropping
+	 * animation for exisiting static blocks after
+	 * some row disappears
+	 */
 	private class DroppableBlock extends MovableBlock {
 
 		public DroppableBlock(int x, int y) {
-			this.x = x;
-			this.y = y;
-			this.tempX = this.x;
-			this.tempY = this.y;
-			this.transformTimer = -1;
-			this.canDrop = false;
-			this.color	= thisBoard.blocks[this.x/this.width][this.y/this.height].color;
+			this.x				= x;		// assigning the x coordinate of the drappable block
+			this.y				= y;		// assigning the y coordinate of the drappable block
+			this.tempX			= this.x;	// stores the temporary x which is used to demostrate the animation // stay unchanged actually
+			this.tempY			= this.y;	// stores the temporary y which is used to demostrate the animation
+			this.transformTimer	= -1;		// it doesn't need to transform as MovableBlock does, so the transformTimer is set to -1
+			this.canDrop		= false;	// the droppable blocks not dropping till it needs to be visible for animation
+			this.color			= thisBoard.blocks[this.x/this.width][this.y/this.height].color;	// set this color to the corresponding static block color
 		}
 
 		public void setDroppable(boolean b) {
@@ -423,11 +428,11 @@ public class Board extends JPanel {
 	}
 
 	private class Block implements Comparable<Block> {
-		public int		x, y;	// x coordinate of the block
-		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// width of the block
-		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());
-		public Color	color	= new Color(230, 230, 230);	// color of the block
-		public boolean	visible	= false;
+		public int		x, y;														// stores x and y coordinates of the block
+		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// stores width of the block, the number floored down
+		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());	// stores height of the block, the number floored down
+		public Color	color	= new Color(230, 230, 230);							// stores color of the block
+		public boolean	visible	= false;											// stores whether or not the block is visible
 
 		public Block() {
 		}
@@ -471,11 +476,11 @@ public class Board extends JPanel {
 	}
 
 	public class Info {
-		public	int	score		= 0;
-		public	int level		= 1;
-		private int	x			= thisBoard.width / 2;
-		private int	y			= thisBoard.height / 20;
-		private int fontSize	= thisBoard.height / 20;
+		public	int	score		= 0;						// stores the score that player earns
+		public	int level		= 1;						// stores the current level of the game
+		private int	x			= thisBoard.width / 2;		// stores the x coordinate of the score that is displayed
+		private int	y			= thisBoard.height / 20;	// stores the y coordinate of the score that is displayed
+		private int fontSize	= thisBoard.height / 20;	// stores the font size of the score that is displayed
 
 
 		public Info() {
