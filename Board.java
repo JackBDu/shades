@@ -470,17 +470,24 @@ public class Board extends JPanel {
 	}
 
 	public class Info {
-		public	int	score	= 0;
-		private int	x		= 10;
-		private int	y		= 20;
+		public	int	score		= 0;
+		private int	x			= thisBoard.width / 2;
+		private int	y			= thisBoard.height / 20;
+		private int fontSize	= thisBoard.height / 20;
+
 
 		public Info() {
 		}
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
+			g2d.setFont(new Font("Arial", Font.PLAIN, this.fontSize));
 			g2d.setColor(new Color(0, 0, 0));
-			g2d.drawString(Integer.toString(this.score), this.x, this.y);
+			String scoreString = Integer.toString(this.score);
+			FontMetrics fm = g2d.getFontMetrics();
+		    this.x = (thisBoard.width - fm.stringWidth(scoreString)) / 2;
+		    System.out.println(fm.stringWidth(scoreString));
+			g2d.drawString(scoreString, this.x, this.y);
 		}
 	}
 }
