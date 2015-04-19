@@ -46,7 +46,7 @@ public class Board extends JPanel {
 
 	private void reset() {
 		this.info				= new Info();
-		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows];
+		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
 		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
 		this.numbersOfStacks 	= new int[this.numberOfColumns];
 		this.movableBlock		= new MovableBlock();
@@ -55,7 +55,7 @@ public class Board extends JPanel {
 		this.movableBlock.setTransformable(true);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			this.numbersOfStacks[c] = 0;
-			for (int r = 0; r < this.numberOfRows; r++) {
+			for (int r = 0; r < this.numberOfRows+1; r++) {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
@@ -342,13 +342,8 @@ public class Board extends JPanel {
 			}
 		}
 
-		public void checkLose() {
-			if (this.y <= 0) {
-				for (int i = 0; i < 100; i++) {
-					System.out.println("Lost");
-					System.out.println(this.y);
-				}
-			}
+		public boolean checkLose() {
+			return this.y <= 0 ? true : false;
 		}
 
 		private void moveLeft() {
