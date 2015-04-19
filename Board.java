@@ -289,6 +289,7 @@ public class Board extends JPanel {
 						}
 					} else {
 						this.canDrop = false;
+						this.checkLose();
 						thisBoard.info.score	= thisBoard.info.score + 2;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
@@ -341,8 +342,17 @@ public class Board extends JPanel {
 			}
 		}
 
+		public void checkLose() {
+			if (this.y <= 0) {
+				for (int i = 0; i < 100; i++) {
+					System.out.println("Lost");
+					System.out.println(this.y);
+				}
+			}
+		}
+
 		private void moveLeft() {
-			if (!thisBoard.isPaused && this.x > 0 && thisBoard.numbersOfStacks[this.x/this.width-1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+			if (!thisBoard.isPaused && this.x > 0 && (thisBoard.numbersOfStacks[this.x/this.width-1] + 1)*this.height < (thisBoard.numberOfRows*this.height-this.y)) {
 				this.x -= this.width;
 				if (debugging) {
 					System.out.println("Block moved left");
@@ -351,7 +361,7 @@ public class Board extends JPanel {
 		}
 
 		private void moveRight() {
-			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && (thisBoard.numbersOfStacks[this.x/this.width+1] + 1)*this.height < (thisBoard.numberOfRows*this.height-this.y)) {
 				this.x += this.width;
 				if (debugging) {
 					System.out.println("Block moved right");
