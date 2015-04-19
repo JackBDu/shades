@@ -308,8 +308,37 @@ public class Board extends JPanel {
 			}
 		}
 
+		// paint the block
+		public void paint(Graphics2D g2d) {
+			if (this.visible) {
+				g2d.setColor(this.color);
+				if (this.transformTimer >= 0) {
+					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
+				} else {
+					g2d.fillRect(this.x, this.y, this.width, this.height);
+				}
+				// if (debugging) {
+				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
+				// }
+			}
+		}
+
 		public void drop() {
 			this.y++;
+		}
+
+		public void merge() {
+			if (this.mergeTimer > 0) {
+				if (this.mergeTimer == 1) {
+					thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setVisible(false);
+				}
+				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
+				this.mergeTimer--;
+				thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
+			} else {
+				System.out.println("stop");
+				this.canMerge	= false;
+			}
 		}
 
 		private void moveLeft() {
@@ -317,6 +346,15 @@ public class Board extends JPanel {
 				this.x -= this.width;
 				if (debugging) {
 					System.out.println("Block moved left");
+				}
+			}
+		}
+
+		private void moveRight() {
+			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
+				this.x += this.width;
+				if (debugging) {
+					System.out.println("Block moved right");
 				}
 			}
 		}
@@ -339,46 +377,8 @@ public class Board extends JPanel {
 			}
 		}		
 
-		private void moveRight() {
-			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && thisBoard.numbersOfStacks[this.x/this.width+1] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
-				this.x += this.width;
-				if (debugging) {
-					System.out.println("Block moved right");
-				}
-			}
-		}
-
 		private void setTransformable(boolean b) {
 			this.canTransform = b;
-		}
-
-		public void merge() {
-			if (this.mergeTimer > 0) {
-				if (this.mergeTimer == 1) {
-					thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setVisible(false);
-				}
-				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
-				this.mergeTimer--;
-				thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
-			} else {
-				System.out.println("stop");
-				this.canMerge	= false;
-			}
-		}
-		
-		// paint the block
-		public void paint(Graphics2D g2d) {
-			if (this.visible) {
-				g2d.setColor(this.color);
-				if (this.transformTimer >= 0) {
-					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
-				} else {
-					g2d.fillRect(this.x, this.y, this.width, this.height);
-				}
-				// if (debugging) {
-				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
-				// }
-			}
 		}
 	}
 
@@ -397,10 +397,6 @@ public class Board extends JPanel {
 			this.transformTimer	= -1;		// it doesn't need to transform as MovableBlock does, so the transformTimer is set to -1
 			this.canDrop		= false;	// the droppable blocks not dropping till it needs to be visible for animation
 			this.color			= thisBoard.blocks[this.x/this.width][this.y/this.height].color;	// set this color to the corresponding static block color
-		}
-
-		public void setDroppable(boolean b) {
-			this.canDrop = b;
 		}
 
 		public void update() {
@@ -439,6 +435,10 @@ public class Board extends JPanel {
 				}
 			}
 		}
+
+		public void setDroppable(boolean b) {
+			this.canDrop = b;
+		}
 	}
 
 	private class Block implements Comparable<Block> {
@@ -455,14 +455,6 @@ public class Board extends JPanel {
 			this.x = x;
 			this.y = y;
 		}
-
-		public void setVisible(boolean b) {
-			this.visible = b;
-		}
-
-		public boolean getVisible() {
-			return this.visible;
-		}
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
@@ -477,8 +469,16 @@ public class Board extends JPanel {
 			}
 		}
 
+		public void setVisible(boolean b) {
+			this.visible = b;
+		}
+
 		public void setColor(Color color) {
 			this.color = color;
+		}
+
+		public boolean getVisible() {
+			return this.visible;
 		}
 
 		public int compareTo(Block block) {
