@@ -20,13 +20,15 @@ import java.util.*;
 
 public class Board extends JPanel {
 	boolean 			debugging		= true;				// for debugging
-	boolean				isDisappearing	= false; 			// whether or not one row is disappearing
-	boolean				isPaused		= false;			// whether or not the game is paused
-	int					levelSleepTime	= 10;				// thread sleep time for current level
-	int 				sleepTime		= levelSleepTime;	// current sleep time // will be decreased when speed up
 	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 				numberOfRows	= 11;				// default value for number of rows of blocks
 	Board				thisBoard		= this;				// for later reference
+	boolean				isDead;
+	boolean				isDisappearing; 					// stores whether or not one row is disappearing
+	boolean				isPaused;							// stores whether or not the game is paused
+	int					maxSleepTime;						// stores max thread sleep time
+	int					minSleepTime;						// stores max thread sleep time
+	int 				sleepTime;							// stores current sleep time // will be decreased when speed up
 	Info				info;								// stores the info when playing
 	Block[][]			blocks;								// stores the static blocks
 	DroppableBlock[][]	droppableBlocks;					// stores the blocks that can only drop
@@ -45,6 +47,13 @@ public class Board extends JPanel {
 	}
 
 	private void reset() {
+		this.isDead				= false;
+		this.maxSleepTime		= 10;
+		this.minSleepTime		= 2;
+		this.sleepTime			= this.maxSleepTime;
+		this.isPaused			= false;
+		this.isDisappearing		= false;
+		this.sleepTime			= this.maxSleepTime;
 		this.info				= new Info();
 		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
 		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
@@ -194,6 +203,9 @@ public class Board extends JPanel {
 				}
 			}
 		}
+		if (this.isDead) {
+			this.reset();
+		}
 	}
 	
 	// main function for the board
@@ -202,8 +214,8 @@ public class Board extends JPanel {
 		Board board		= new Board(300, 480);
 
 		// initialize the frame
-		frame.add(board);
 		frame.setSize(300, 502);
+		frame.add(board);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -275,7 +287,7 @@ public class Board extends JPanel {
 				}
 				int column = this.x / this.width;
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
-					thisBoard.sleepTime = thisBoard.levelSleepTime;
+					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
 					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.canMerge			= true;
@@ -289,7 +301,7 @@ public class Board extends JPanel {
 						}
 					} else {
 						this.canDrop = false;
-						this.checkLose();
+						this.checkDie();
 						thisBoard.info.score	= thisBoard.info.score + 2;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
@@ -303,6 +315,7 @@ public class Board extends JPanel {
 					}
 					if (debugging) {
 						System.out.println("Score: "+thisBoard.info.score);
+						System.out.println("Block at ("+column+", "+row+")\ncolor: "+this.color+"\nvisible: "+this.visible);
 						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
 					}	
 				}
@@ -342,8 +355,8 @@ public class Board extends JPanel {
 			}
 		}
 
-		public boolean checkLose() {
-			return this.y <= 0 ? true : false;
+		public void checkDie() {
+			thisBoard.isDead = this.y <= 0 ? true : false;
 		}
 
 		private void moveLeft() {
@@ -495,18 +508,23 @@ public class Board extends JPanel {
 	}
 
 	public class Info {
-		public	int	score		= 0;						// stores the score that player earns
-		public	int level		= 1;						// stores the current level of the game
-		private int	x			= thisBoard.width / 2;		// stores the x coordinate of the score that is displayed
-		private int	y			= thisBoard.height / 15;	// stores the y coordinate of the score that is displayed
-		private int fontSize	= thisBoard.height / 20;	// stores the font size of the score that is displayed
+		public	int	score			= 0;						// stores the score that player earns
+		public	int level			= 1;						// stores the current level of the game
+		public	int levelSleepTime	= thisBoard.maxSleepTime;	// stores the sleep time for current level 
+		private int	x				= thisBoard.width / 2;		// stores the x coordinate of the score that is displayed
+		private int	y				= thisBoard.height / 15;	// stores the y coordinate of the score that is displayed
+		private int fontSize		= thisBoard.height / 20;	// stores the font size of the score that is displayed
 
 
 		public Info() {
 		}
 
 		public void update() {
-			this.level = this.score / 500 + 1;
+			this.level			= this.score / 480 + 1;
+			int sleepTimeToSet	= thisBoard.maxSleepTime - this.level / thisBoard.maxSleepTime;
+			if (sleepTimeToSet <= thisBoard.maxSleepTime || sleepTimeToSet >= thisBoard.minSleepTime) {
+				this.levelSleepTime = sleepTimeToSet;
+			}
 		}
 		
 		// paint the block
