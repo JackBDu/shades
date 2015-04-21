@@ -23,7 +23,7 @@ public class Board extends JPanel {
 	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 				numberOfRows	= 11;				// default value for number of rows of blocks
 	Board				thisBoard		= this;				// for later reference
-	boolean				isDead;
+	boolean				isDead;								// stores whether or not the current game is dead
 	boolean				isDisappearing; 					// stores whether or not one row is disappearing
 	boolean				isPaused;							// stores whether or not the game is paused
 	int					maxSleepTime;						// stores max thread sleep time
@@ -64,7 +64,7 @@ public class Board extends JPanel {
 		this.movableBlock.setTransformable(true);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			this.numbersOfStacks[c] = 0;
-			for (int r = 0; r < this.numberOfRows+1; r++) {
+			for (int r = 0; r < this.numberOfRows + 1; r++) {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
@@ -73,7 +73,7 @@ public class Board extends JPanel {
 				}
 			}
 		}
-	}
+	} // reset() ends
 	
 	// return the number of columns of blocks 
 	private int getNumberOfColumns() {
@@ -120,7 +120,11 @@ public class Board extends JPanel {
 					System.out.println(thisBoard.isPaused);
 				}
 			} else if (KeyEvent.getKeyText(keyCode) == "Down") {
-				thisBoard.sleepTime = 1;
+				if (thisBoard.sleepTime == 2) {
+					thisBoard.sleepTime = 1;
+				} else if (thisBoard.sleepTime != 1) {
+					thisBoard.sleepTime = 2;
+				}
 			}
 			if (debugging) {
 				System.out.println(KeyEvent.getKeyText(keyCode)+" pressed");
@@ -133,7 +137,7 @@ public class Board extends JPanel {
 		public void keyReleased(KeyEvent e) {
 
 		}
-	}
+	} // MyKeyListener ends
 
 	public void handleDisappear() {
 		int		disappearingRow	= -1;			// stores the row to disappear
@@ -171,7 +175,7 @@ public class Board extends JPanel {
 		} else {
 			this.isDisappearing = false;
 		}
-	}
+	} // handleDisappear() ends
 
 	// paint the whole board
 	public void paint(Graphics g) {
@@ -189,7 +193,7 @@ public class Board extends JPanel {
 		this.movableBlock.paint(g2d);
 		this.nextMovableBlock.paint(g2d);
 		this.info.paint(g2d);
-	}
+	} // paint() ends
 
 	// update the status
 	public void update() {
@@ -206,7 +210,7 @@ public class Board extends JPanel {
 		if (this.isDead) {
 			this.reset();
 		}
-	}
+	} // update() ends
 	
 	// main function for the board
 	public static void main(String[] args) throws InterruptedException {
@@ -233,7 +237,7 @@ public class Board extends JPanel {
 			board.repaint();
 			Thread.sleep(board.sleepTime);
 		}
-	}
+	} // main() ends
 
 	// the block class
 	private class MovableBlock extends Block {
@@ -254,7 +258,8 @@ public class Board extends JPanel {
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
 			Random rand	= new Random();
-			int n		= rand.nextInt(thisBoard.numberOfColumns);
+			// int n		= rand.nextInt(thisBoard.numberOfColumns);
+			int n = 0;
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
 			int m		= this.color.getRed() - rand.nextInt(4) * 43;
@@ -320,7 +325,7 @@ public class Board extends JPanel {
 					}	
 				}
 			}
-		}
+		} // update() ends
 
 		// paint the block
 		public void paint(Graphics2D g2d) {
@@ -353,7 +358,7 @@ public class Board extends JPanel {
 				System.out.println("stop");
 				this.canMerge	= false;
 			}
-		}
+		} // merge() ends
 
 		public void checkDie() {
 			thisBoard.isDead = this.y <= 0 ? true : false;
@@ -393,12 +398,12 @@ public class Board extends JPanel {
 					System.out.println("Block moved to column "+n);
 				}
 			}
-		}		
+		} // moveTo() ends	
 
 		private void setTransformable(boolean b) {
 			this.canTransform = b;
 		}
-	}
+	} // MoveableBlock ends
 
 	/*
 	 * DroopableBlock is used to show the dropping
@@ -408,14 +413,14 @@ public class Board extends JPanel {
 	private class DroppableBlock extends MovableBlock {
 
 		public DroppableBlock(int x, int y) {
-			this.x				= x;		// assigning the x coordinate of the drappable block
-			this.y				= y;		// assigning the y coordinate of the drappable block
+			this.x				= x;		// assigning the x coordinate of the droppable block
+			this.y				= y;		// assigning the y coordinate of the droppable block
 			this.tempX			= this.x;	// stores the temporary x which is used to demostrate the animation // stay unchanged actually
 			this.tempY			= this.y;	// stores the temporary y which is used to demostrate the animation
 			this.transformTimer	= -1;		// it doesn't need to transform as MovableBlock does, so the transformTimer is set to -1
 			this.canDrop		= false;	// the droppable blocks not dropping till it needs to be visible for animation
 			this.color			= thisBoard.blocks[this.x/this.width][this.y/this.height].color;	// set this color to the corresponding static block color
-		}
+		}  // DroppableBlock() ends
 
 		public void update() {
 			if (this.canDrop) {
@@ -428,11 +433,10 @@ public class Board extends JPanel {
 				if (this.y == this.tempY+this.height) {
 					System.out.println("reach");
 					int row = this.y / this.height;
-					if (this.color.getRed() > 15 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (thisBoard.blocks[column][row+1].getVisible() && this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.tempX				= this.x;
 						this.tempY				= this.y;
 						this.canMerge	= true;
-						this.tempHeight	= this.height * 2;
 						this.mergeTimer	= this.mergeTime;
 						if (debugging) {
 							System.out.println("Merging block("+this.y/this.height+", "+this.x/this.width+")");
@@ -452,12 +456,12 @@ public class Board extends JPanel {
 					}
 				}
 			}
-		}
+		} // update() ends
 
 		public void setDroppable(boolean b) {
 			this.canDrop = b;
 		}
-	}
+	} // DroppableBlock ends
 
 	private class Block implements Comparable<Block> {
 		public int		x, y;														// stores x and y coordinates of the block
@@ -505,7 +509,7 @@ public class Board extends JPanel {
 			}
 			return 0;
 		}
-	}
+	} // Block ends
 
 	public class Info {
 		public	int	score			= 0;						// stores the score that player earns
@@ -525,7 +529,7 @@ public class Board extends JPanel {
 			if (sleepTimeToSet <= thisBoard.maxSleepTime || sleepTimeToSet >= thisBoard.minSleepTime) {
 				this.levelSleepTime = sleepTimeToSet;
 			}
-		}
+		} // update() ends
 		
 		// paint the block
 		private void paint(Graphics2D g2d) {
@@ -538,6 +542,6 @@ public class Board extends JPanel {
 			g2d.drawString(scoreString, this.x, this.y);
 			g2d.setFont(new Font("Arial", Font.PLAIN, this.fontSize * 4 / 5));
 			g2d.drawString(levelString, this.y/2, this.y);
-		}
-	}
-}
+		} 	// paint() ends
+	} // Info ends
+} // Board ends
