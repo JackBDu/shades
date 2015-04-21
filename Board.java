@@ -23,18 +23,19 @@ public class Board extends JPanel {
 	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 				numberOfRows	= 11;				// default value for number of rows of blocks
 	Board				thisBoard		= this;				// for later reference
-	boolean				isDead;								// stores whether or not the current game is dead
-	boolean				isDisappearing; 					// stores whether or not one row is disappearing
-	boolean				isPaused;							// stores whether or not the game is paused
-	int					maxSleepTime;						// stores max thread sleep time
-	int					minSleepTime;						// stores max thread sleep time
-	int 				sleepTime;							// stores current sleep time // will be decreased when speed up
-	Info				info;								// stores the info when playing
-	Block[][]			blocks;								// stores the static blocks
-	DroppableBlock[][]	droppableBlocks;					// stores the blocks that can only drop
-	int[]				numbersOfStacks;					// stores the the number of blocks stacked for each column
-	int					height, width;						// stores the width and height of the Board
-	MovableBlock		movableBlock, nextMovableBlock;		// stores the current and next block that player can control
+	boolean					isDead;								// stores whether or not the current game is dead
+	boolean					isDisappearing; 					// stores whether or not one row is disappearing
+	boolean					isPaused;							// stores whether or not the game is paused
+	int						maxSleepTime;						// stores max thread sleep time
+	int						minSleepTime;						// stores max thread sleep time
+	int 					sleepTime;							// stores current sleep time // will be decreased when speed up
+	Info					info;								// stores the info when playing
+	Block[][]				blocks;								// stores the static blocks
+	DroppableBlock[][]		droppableBlocks;					// stores the blocks that can only drop
+	int[]					numbersOfStacks;					// stores the the number of blocks stacked for each column
+	int						height, width;						// stores the width and height of the Board
+	MovableBlock			movableBlock, nextMovableBlock;		// stores the current and next block that player can control
+	DisappearableBlock[][]	disappearableBlock;					// stores the blocks that can only disappear
 	
 	public Board(int w, int h) {
 		KeyListener listener = new MyKeyListener();
@@ -55,8 +56,9 @@ public class Board extends JPanel {
 		this.isDisappearing		= false;
 		this.sleepTime			= this.maxSleepTime;
 		this.info				= new Info();
-		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows];
+		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
 		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
+		this.disappearableBlock	= new DisappearableBlock[this.numberOfColumns][this.numberOfRows];
 		this.numbersOfStacks 	= new int[this.numberOfColumns];
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
@@ -64,12 +66,15 @@ public class Board extends JPanel {
 		this.movableBlock.setTransformable(true);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			this.numbersOfStacks[c] = 0;
-			for (int r = 0; r < this.numberOfRows; r++) {
+			for (int r = 0; r < this.numberOfRows + 1; r++) {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
-				if (r < this.numberOfRows - 1) {
-					this.droppableBlocks[c][r] = new DroppableBlock(x, y);
+				if (r < this.numberOfRows) {
+					if (r < this.numberOfRows - 1) {
+						this.droppableBlocks[c][r] = new DroppableBlock(x, y);
+					}
+					this.disappearableBlock[c][r] = new DisappearableBlock(x, y);
 				}
 			}
 		}
@@ -158,7 +163,10 @@ public class Board extends JPanel {
 		}
 		if (disappearingRow != -1) {
 			for (int c = 0; c < this.numberOfColumns; c++) {
+				Color color = thisBoard.blocks[c][disappearingRow].color;
 				thisBoard.blocks[c][disappearingRow].setVisible(false);
+				thisBoard.disappearableBlock[c][disappearingRow].setVisible(true);
+				thisBoard.disappearableBlock[c][disappearingRow].setColor(color);
 				thisBoard.numbersOfStacks[c]--;
 			}
 			for (int r = 0; r < disappearingRow; r++) {
@@ -185,8 +193,11 @@ public class Board extends JPanel {
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			for (int r = 0; r < this.numberOfRows; r++) {
 				this.blocks[c][r].paint(g2d);
-				if (r < this.numberOfRows - 1) {
-					this.droppableBlocks[c][r].paint(g2d);
+				if (r < this.numberOfRows) {
+					if (r < this.numberOfRows - 1) {
+						this.droppableBlocks[c][r].paint(g2d);
+					}
+					this.disappearableBlock[c][r].paint(g2d);
 				}
 			}
 		}
@@ -205,8 +216,11 @@ public class Board extends JPanel {
 		this.info.update();
 		if (this.isDisappearing) {
 			for (int c = 0; c < this.numberOfColumns; c++) {
-				for (int r = 0; r < this.numberOfRows - 1; r++) {
-					this.droppableBlocks[c][r].update();
+				for (int r = 0; r < this.numberOfRows; r++) {
+					if (r < this.numberOfRows - 1) {
+	 					this.droppableBlocks[c][r].update();
+	 				}
+					this.disappearableBlock[c][r].update();
 				}
 			}
 		}
@@ -475,6 +489,35 @@ public class Board extends JPanel {
 		}
 	} // DroppableBlock ends
 
+	private class DisappearableBlock extends Block {
+		public int normHeight		= this.height;
+		public int normY;
+
+		public DisappearableBlock(int x, int y) {
+			this.x 		= x;
+			this.y 		= y;
+			this.normY	= this.y;
+		}
+
+		public void update() {
+			if (this.visible) {
+				this.disappear();
+			}
+		}
+
+		public void disappear() {
+			if (this.height > 0) {
+				this.height--;
+				this.y++;
+			} else {
+				this.height		= this.normHeight;
+				this.y			= this.normY;
+				this.visible	= false;
+			}
+		}
+
+	}
+
 	private class Block implements Comparable<Block> {
 		public int		x, y;														// stores x and y coordinates of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// stores width of the block, the number floored down
@@ -491,15 +534,10 @@ public class Board extends JPanel {
 		}
 		
 		// paint the block
-		private void paint(Graphics2D g2d) {
+		public void paint(Graphics2D g2d) {
 			if (this.visible) {
-				int width, height, x, y;
-				width	= this.width;
-				height	= this.height;
-				x = this.x;
-				y = this.y;
 				g2d.setColor(this.color);
-				g2d.fillRect(x, y, width, height);
+				g2d.fillRect(this.x, this.y, this.width, this.height);
 			}
 		}
 
