@@ -197,6 +197,9 @@ public class Board extends JPanel {
 
 	// update the status
 	public void update() {
+		if (this.isDead) {
+			this.reset();
+		}
 		this.movableBlock.update();
 		this.nextMovableBlock.update();
 		this.info.update();
@@ -206,9 +209,6 @@ public class Board extends JPanel {
 					this.droppableBlocks[c][r].update();
 				}
 			}
-		}
-		if (this.isDead) {
-			this.reset();
 		}
 	} // update() ends
 	
@@ -258,8 +258,7 @@ public class Board extends JPanel {
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
 			Random rand	= new Random();
-			// int n		= rand.nextInt(thisBoard.numberOfColumns);
-			int n = 0;
+			int n		= rand.nextInt(thisBoard.numberOfColumns);;
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
 			int m		= this.color.getRed() - rand.nextInt(4) * 43;
@@ -372,6 +371,9 @@ public class Board extends JPanel {
 
 		public void checkDie() {
 			thisBoard.isDead = this.y <= 0 ? true : false;
+			if (thisBoard.isDead) {
+				thisBoard.isPaused = true;
+			}
 		}
 
 		private void moveLeft() {
