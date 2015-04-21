@@ -55,7 +55,7 @@ public class Board extends JPanel {
 		this.isDisappearing		= false;
 		this.sleepTime			= this.maxSleepTime;
 		this.info				= new Info();
-		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
+		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows];
 		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
 		this.numbersOfStacks 	= new int[this.numberOfColumns];
 		this.movableBlock		= new MovableBlock();
@@ -64,7 +64,7 @@ public class Board extends JPanel {
 		this.movableBlock.setTransformable(true);
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			this.numbersOfStacks[c] = 0;
-			for (int r = 0; r < this.numberOfRows + 1; r++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
 				int x = c * this.movableBlock.width;
 				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
 				this.blocks[c][r] = new Block(x, y);
@@ -294,6 +294,9 @@ public class Board extends JPanel {
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
+					if (this.y < 0) {
+						row = -1;
+					}
 					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.canMerge			= true;
 						this.tempX				= this.x;
@@ -307,16 +310,18 @@ public class Board extends JPanel {
 					} else {
 						this.canDrop = false;
 						this.checkDie();
-						thisBoard.info.score	= thisBoard.info.score + 2;
-						thisBoard.blocks[column][row].setColor(this.color);
-						thisBoard.blocks[column][row].setVisible(true);
-						System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
-						numbersOfStacks[column]++;
-						thisBoard.nextMovableBlock.setTransformable(true);
-						thisBoard.movableBlock		= thisBoard.nextMovableBlock;
-						thisBoard.nextMovableBlock	= new MovableBlock();
-						thisBoard.isDisappearing	= true;
-						thisBoard.handleDisappear();
+						if (row >= 0) {
+							thisBoard.info.score	= thisBoard.info.score + 2;
+							thisBoard.blocks[column][row].setColor(this.color);
+							thisBoard.blocks[column][row].setVisible(true);
+							System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
+							numbersOfStacks[column]++;
+							thisBoard.nextMovableBlock.setTransformable(true);
+							thisBoard.movableBlock		= thisBoard.nextMovableBlock;
+							thisBoard.nextMovableBlock	= new MovableBlock();
+							thisBoard.isDisappearing	= true;
+							thisBoard.handleDisappear();
+						}
 					}
 					if (debugging) {
 						System.out.println("Score: "+thisBoard.info.score);
@@ -348,12 +353,17 @@ public class Board extends JPanel {
 
 		public void merge() {
 			if (this.mergeTimer > 0) {
+				int row = this.tempY/this.height+1;
+				if (this.tempY < 0) {
+					row = 0;
+				}
+				int column = this.tempX/this.width;
 				if (this.mergeTimer == 1) {
-					thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setVisible(false);
+					thisBoard.blocks[column][row].setVisible(false);
 				}
 				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
 				this.mergeTimer--;
-				thisBoard.blocks[this.tempX/this.width][this.tempY/this.height+1].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
+				thisBoard.blocks[column][row].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
 			} else {
 				System.out.println("stop");
 				this.canMerge	= false;
