@@ -181,7 +181,7 @@ public class Board extends JPanel {
 				}
 			}
 		} else {
-			this.isDisappearing = false;
+			thisBoard.isDisappearing = false;
 		}
 	} // handleDisappear() ends
 
@@ -193,12 +193,10 @@ public class Board extends JPanel {
 		for (int c = 0; c < this.numberOfColumns; c++) {
 			for (int r = 0; r < this.numberOfRows; r++) {
 				this.blocks[c][r].paint(g2d);
-				if (r < this.numberOfRows) {
-					if (r < this.numberOfRows - 1) {
-						this.droppableBlocks[c][r].paint(g2d);
-					}
-					this.disappearableBlock[c][r].paint(g2d);
+				if (r < this.numberOfRows - 1) {
+					this.droppableBlocks[c][r].paint(g2d);
 				}
+				this.disappearableBlock[c][r].paint(g2d);
 			}
 		}
 		this.movableBlock.paint(g2d);
@@ -509,6 +507,7 @@ public class Board extends JPanel {
 
 		public void update() {
 			if (this.visible) {
+				System.out.println("("+this.x+", "+this.y+") THIS IS VISIBLE!");
 				this.disappear();
 			}
 		}
@@ -518,14 +517,15 @@ public class Board extends JPanel {
 				this.height++;
 				this.y--;
 				this.bounceTimer--;
-			} else if (this.height > 0) {
+			} else if (this.height > 1) {
 				this.height--;
 				this.y++;
 			} else {
-				this.height			= this.normHeight;
-				this.y				= this.normY;
-				this.bounceTimer	= this.bounceTime;
-				this.visible		= false;
+				this.height					= this.normHeight;
+				this.y						= this.normY;
+				this.bounceTimer			= this.bounceTime;
+				this.visible				= false;
+				thisBoard.isDisappearing	= false;
 			}
 		}
 
