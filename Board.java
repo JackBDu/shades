@@ -134,7 +134,7 @@ public class Board extends JPanel {
 				}
 			}
 			if (debugging) {
-				System.out.println(KeyEvent.getKeyText(keyCode)+" pressed");
+				System.out.println(KeyEvent.getKeyText(keyCode)+"("+keyCode+")"+" pressed");
 			}
 		}
 		@Override
