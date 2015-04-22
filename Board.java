@@ -108,9 +108,9 @@ public class Board extends JPanel {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
-				if (KeyEvent.getKeyText(keyCode) == "Left") {
+				if (keyCode == 37) {
 					thisBoard.movableBlock.moveLeft();
-				} else if (KeyEvent.getKeyText(keyCode) == "Right") {
+				} else if (keyCode == 39) {
 					thisBoard.movableBlock.moveRight();
 				} else if (keyCode < 58 && keyCode > 47) { // number key move to
 					if (keyCode == 48) { // 0 key
@@ -121,12 +121,12 @@ public class Board extends JPanel {
 					
 				}
 			}
-			if (KeyEvent.getKeyText(keyCode) == "Space") {
+			if (keyCode == 32) {
 				thisBoard.isPaused = !thisBoard.isPaused;
 				if (debugging) {
 					System.out.println(thisBoard.isPaused);
 				}
-			} else if (KeyEvent.getKeyText(keyCode) == "Down") {
+			} else if (keyCode == 40) {
 				if (thisBoard.sleepTime == 2) {
 					thisBoard.sleepTime = 1;
 				} else if (thisBoard.sleepTime != 1) {
