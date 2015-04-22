@@ -19,10 +19,10 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 			debugging		= true;				// for debugging
-	int 				numberOfColumns	= 4;				// default value for number of columns of blocks
-	int 				numberOfRows	= 11;				// default value for number of rows of blocks
-	Board				thisBoard		= this;				// for later reference
+	boolean 				debugging		= true;				// for debugging
+	int 					numberOfColumns	= 4;				// default value for number of columns of blocks
+	int 					numberOfRows	= 11;				// default value for number of rows of blocks
+	Board					thisBoard		= this;				// for later reference
 	boolean					isDead;								// stores whether or not the current game is dead
 	boolean					isDisappearing; 					// stores whether or not one row is disappearing
 	boolean					isPaused;							// stores whether or not the game is paused
@@ -437,6 +437,8 @@ public class Board extends JPanel {
 	 * some row disappears
 	 */
 	private class DroppableBlock extends MovableBlock {
+		public int bounceTime	= 10;
+		public int bounceTimer	= bounceTime;
 
 		public DroppableBlock(int x, int y) {
 			this.x				= x;		// assigning the x coordinate of the droppable block
@@ -449,7 +451,10 @@ public class Board extends JPanel {
 		}  // DroppableBlock() ends
 
 		public void update() {
-			if (this.canDrop) {
+			if (this.bounceTimer > 0 && this.canDrop) { 
+				this.y--;
+				this.bounceTimer--;
+			} else if (this.canDrop) {
 				System.out.println("dropping "+this.y);
 				this.drop();
 				if (this.canMerge) {
@@ -476,6 +481,7 @@ public class Board extends JPanel {
 						this.setVisible(false);
 						this.x = this.tempX;
 						this.y = this.tempY;
+						this.bounceTimer = this.bounceTime;
 					}
 					if (debugging) {
 						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
@@ -491,12 +497,14 @@ public class Board extends JPanel {
 
 	private class DisappearableBlock extends Block {
 		public int normHeight		= this.height;
+		public int bounceTime 		= 10;
+		public int bounceTimer 		= bounceTime;
 		public int normY;
 
 		public DisappearableBlock(int x, int y) {
-			this.x 		= x;
-			this.y 		= y;
-			this.normY	= this.y;
+			this.x 				= x;
+			this.y 				= y;
+			this.normY			= this.y;
 		}
 
 		public void update() {
@@ -506,13 +514,18 @@ public class Board extends JPanel {
 		}
 
 		public void disappear() {
-			if (this.height > 0) {
+			if (this.bounceTimer > 0) {
+				this.height++;
+				this.y--;
+				this.bounceTimer--;
+			} else if (this.height > 0) {
 				this.height--;
 				this.y++;
 			} else {
-				this.height		= this.normHeight;
-				this.y			= this.normY;
-				this.visible	= false;
+				this.height			= this.normHeight;
+				this.y				= this.normY;
+				this.bounceTimer	= this.bounceTime;
+				this.visible		= false;
 			}
 		}
 
