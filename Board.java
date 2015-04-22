@@ -25,6 +25,7 @@ public class Board extends JPanel {
 	Board					thisBoard		= this;				// for later reference
 	boolean					isDead;								// stores whether or not the current game is dead
 	boolean					isDisappearing; 					// stores whether or not one row is disappearing
+	boolean					isMerging;
 	boolean					isPaused;							// stores whether or not the game is paused
 	int						maxSleepTime;						// stores max thread sleep time
 	int						minSleepTime;						// stores max thread sleep time
@@ -54,6 +55,7 @@ public class Board extends JPanel {
 		this.sleepTime			= this.maxSleepTime;
 		this.isPaused			= false;
 		this.isDisappearing		= false;
+		this.isMerging			= false;
 		this.sleepTime			= this.maxSleepTime;
 		this.info				= new Info();
 		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
@@ -212,14 +214,12 @@ public class Board extends JPanel {
 		this.movableBlock.update();
 		this.nextMovableBlock.update();
 		this.info.update();
-		if (this.isDisappearing) {
-			for (int c = 0; c < this.numberOfColumns; c++) {
-				for (int r = 0; r < this.numberOfRows; r++) {
-					if (r < this.numberOfRows - 1) {
-	 					this.droppableBlocks[c][r].update();
-	 				}
-					this.disappearableBlock[c][r].update();
-				}
+		for (int c = 0; c < this.numberOfColumns; c++) {
+			for (int r = 0; r < this.numberOfRows; r++) {
+				if (r < this.numberOfRows - 1) {
+ 					this.droppableBlocks[c][r].update();
+ 				}
+				this.disappearableBlock[c][r].update();
 			}
 		}
 	} // update() ends
@@ -289,7 +289,7 @@ public class Board extends JPanel {
 				this.tempHeight	= this.height;
 				this.tempX		= this.x - this.x * this.transformTimer / this.transformTime;
 				this.tempY		= this.y;
-				if (!thisBoard.isDisappearing && this.canTransform) {
+				if (!thisBoard.isDisappearing && !thisBoard.isMerging && this.canTransform) {
 					this.transformTimer--;
 				}
 			} else {
@@ -377,7 +377,8 @@ public class Board extends JPanel {
 				thisBoard.blocks[column][row].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
 			} else {
 				System.out.println("stop");
-				this.canMerge	= false;
+				this.canMerge		= false;
+				thisBoard.isMerging = false;
 			}
 		} // merge() ends
 
@@ -451,6 +452,7 @@ public class Board extends JPanel {
 		public void update() {
 			if (this.bounceTimer > 0 && this.canDrop) { 
 				this.y--;
+				this.y--;
 				this.bounceTimer--;
 			} else if (this.canDrop) {
 				System.out.println("dropping "+this.y);
@@ -465,8 +467,9 @@ public class Board extends JPanel {
 					if (thisBoard.blocks[column][row+1].getVisible() && this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.tempX				= this.x;
 						this.tempY				= this.y;
-						this.canMerge	= true;
-						this.mergeTimer	= this.mergeTime;
+						this.canMerge			= true;
+						this.mergeTimer			= this.mergeTime;
+						thisBoard.isMerging		= true;
 						if (debugging) {
 							System.out.println("Merging block("+this.y/this.height+", "+this.x/this.width+")");
 						}
@@ -515,6 +518,8 @@ public class Board extends JPanel {
 		public void disappear() {
 			if (this.bounceTimer > 0) {
 				this.height++;
+				this.height++;
+				this.y--;
 				this.y--;
 				this.bounceTimer--;
 			} else if (this.height > 1) {
