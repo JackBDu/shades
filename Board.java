@@ -126,7 +126,7 @@ public class Board extends JPanel {
 				if (debugging) {
 					System.out.println(thisBoard.isPaused);
 				}
-			} else if (keyCode == 40) {
+			} else if (keyCode == 40 || keyCode == 192) {
 				if (thisBoard.sleepTime == 2) {
 					thisBoard.sleepTime = 1;
 				} else if (thisBoard.sleepTime != 1) {
@@ -458,7 +458,9 @@ public class Board extends JPanel {
 			} else if (this.canDrop) {
 				System.out.println("dropping "+this.y);
 				this.drop();
+				thisBoard.sleepTime = 2;
 				if (this.canMerge) {
+					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					this.merge();
 				}
 				int column = this.x / this.width;
@@ -476,7 +478,6 @@ public class Board extends JPanel {
 						}
 						thisBoard.numbersOfStacks[column]--;
 					} else {
-						thisBoard.handleDisappear();
 						this.canDrop 				= false;
 						thisBoard.numbersOfStacks[column]++;
 						thisBoard.blocks[column][row].setColor(this.color);
@@ -485,6 +486,7 @@ public class Board extends JPanel {
 						this.x = this.tempX;
 						this.y = this.tempY;
 						this.bounceTimer = this.bounceTime;
+						thisBoard.handleDisappear();
 					}
 					if (debugging) {
 						System.out.println("Stacks: ("+thisBoard.numbersOfStacks[0]+", "+thisBoard.numbersOfStacks[1]+", "+thisBoard.numbersOfStacks[2]+", "+thisBoard.numbersOfStacks[3]+")");
