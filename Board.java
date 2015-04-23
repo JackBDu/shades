@@ -169,7 +169,7 @@ public class Board extends JPanel {
 				thisBoard.blocks[c][disappearingRow].setVisible(false);
 				thisBoard.disappearableBlock[c][disappearingRow].setVisible(true);
 				thisBoard.disappearableBlock[c][disappearingRow].setColor(color);
-				thisBoard.numbersOfStacks[c]--;
+				thisBoard.numbersOfStacks[c] = thisBoard.numberOfRows - disappearingRow - 1;
 			}
 			for (int r = 0; r < disappearingRow; r++) {
 				for (int c = 0; c < this.numberOfColumns; c++) {
@@ -215,7 +215,7 @@ public class Board extends JPanel {
 		this.nextMovableBlock.update();
 		this.info.update();
 		for (int c = 0; c < this.numberOfColumns; c++) {
-			for (int r = 0; r < this.numberOfRows; r++) {
+			for (int r = this.numberOfRows - 1; r >= 0; r--) {
 				if (r < this.numberOfRows - 1) {
  					this.droppableBlocks[c][r].update();
  				}
@@ -326,7 +326,7 @@ public class Board extends JPanel {
 							thisBoard.blocks[column][row].setColor(this.color);
 							thisBoard.blocks[column][row].setVisible(true);
 							System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
-							numbersOfStacks[column]++;
+							thisBoard.numbersOfStacks[column]++;
 							thisBoard.nextMovableBlock.setTransformable(true);
 							thisBoard.movableBlock		= thisBoard.nextMovableBlock;
 							thisBoard.nextMovableBlock	= new MovableBlock();
@@ -462,10 +462,10 @@ public class Board extends JPanel {
 					this.merge();
 				}
 				int column = this.x / this.width;
-				if (this.y == this.tempY+this.height) {
-					System.out.println("reach");
+				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
+					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
-					if (thisBoard.blocks[column][row+1].getVisible() && this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.tempX				= this.x;
 						this.tempY				= this.y;
 						this.canMerge			= true;
@@ -478,6 +478,7 @@ public class Board extends JPanel {
 					} else {
 						thisBoard.handleDisappear();
 						this.canDrop 				= false;
+						thisBoard.numbersOfStacks[column]++;
 						thisBoard.blocks[column][row].setColor(this.color);
 						thisBoard.blocks[column][row].setVisible(true);
 						this.setVisible(false);
