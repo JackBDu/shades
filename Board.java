@@ -164,6 +164,7 @@ public class Board extends JPanel {
 			}
 		}
 		if (disappearingRow != -1) {
+			thisBoard.info.score += 10;
 			for (int c = 0; c < this.numberOfColumns; c++) {
 				Color color = thisBoard.blocks[c][disappearingRow].color;
 				thisBoard.blocks[c][disappearingRow].setVisible(false);
@@ -458,7 +459,6 @@ public class Board extends JPanel {
 			} else if (this.canDrop) {
 				System.out.println("dropping "+this.y);
 				this.drop();
-				thisBoard.sleepTime = 2;
 				if (this.canMerge) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					this.merge();
@@ -527,6 +527,7 @@ public class Board extends JPanel {
 				this.y--;
 				this.bounceTimer--;
 			} else if (this.height > 1) {
+				thisBoard.sleepTime = 2;
 				this.height--;
 				this.y++;
 			} else {
