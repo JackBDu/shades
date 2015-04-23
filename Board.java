@@ -371,6 +371,7 @@ public class Board extends JPanel {
 				int column = this.tempX/this.width;
 				if (this.mergeTimer == 1) {
 					thisBoard.blocks[column][row].setVisible(false);
+					thisBoard.isMerging 	= false;
 				}
 				this.color = new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1, 255);
 				this.mergeTimer--;
