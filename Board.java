@@ -25,7 +25,7 @@ public class Board extends JPanel {
 	Board					thisBoard		= this;				// for later reference
 	boolean					isDead;								// stores whether or not the current game is dead
 	boolean					isDisappearing; 					// stores whether or not one row is disappearing
-	boolean					isMerging;
+	boolean					isMerging;							// stores whether or not one block is merging
 	boolean					isPaused;							// stores whether or not the game is paused
 	int						maxSleepTime;						// stores max thread sleep time
 	int						minSleepTime;						// stores max thread sleep time
