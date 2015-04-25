@@ -19,7 +19,7 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 				debugging		= true;				// for debugging
+	boolean 				debugging		= false;			// for debugging
 	int 					numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 					numberOfRows	= 11;				// default value for number of rows of blocks
 	Board					thisBoard		= this;				// for later reference
@@ -48,35 +48,35 @@ public class Board extends JPanel {
 		this.reset();
 	}
 
+	// initialize/reset the all variables
 	private void reset() {
 		this.isDead				= false;
 		this.maxSleepTime		= 10;
 		this.minSleepTime		= 2;
-		this.sleepTime			= this.maxSleepTime;
-		this.isPaused			= false;
+		this.isPaused			= false;				// game not paused at beginning
 		this.isDisappearing		= false;
 		this.isMerging			= false;
-		this.sleepTime			= this.maxSleepTime;
+		this.sleepTime			= this.maxSleepTime;	// the bigger the sleepTIme is, the slower the game runs, starts with max/slowest
 		this.info				= new Info();
-		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];
-		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];
-		this.disappearableBlock	= new DisappearableBlock[this.numberOfColumns][this.numberOfRows];
+		this.blocks				= new Block[this.numberOfColumns][this.numberOfRows+1];				// one more row for comparing current block wiht lower block
+		this.droppableBlocks 	= new DroppableBlock[this.numberOfColumns][this.numberOfRows-1];	// one less row cuz starts dropping at the last but one row
+		this.disappearableBlock	= new DisappearableBlock[this.numberOfColumns][this.numberOfRows];	// any row can be disappeared
 		this.numbersOfStacks 	= new int[this.numberOfColumns];
 		this.movableBlock		= new MovableBlock();
 		this.nextMovableBlock	= new MovableBlock();
-		this.movableBlock.setVisible(true);
-		this.movableBlock.setTransformable(true);
+		this.movableBlock.setVisible(true);					// set current movableBlock to be visible
+		this.movableBlock.setTransformable(true);			// current movableBlock transformable so that it starts shrinking
 		for (int c = 0; c < this.numberOfColumns; c++) {
-			this.numbersOfStacks[c] = 0;
+			this.numbersOfStacks[c] = 0;												// there's zero block stacked at the very beginning
 			for (int r = 0; r < this.numberOfRows + 1; r++) {
-				int x = c * this.movableBlock.width;
-				int y = r * this.movableBlock.height + this.height % this.numberOfRows;
-				this.blocks[c][r] = new Block(x, y);
+				int x = c * this.movableBlock.width;									// x coordinate of this block
+				int y = r * this.movableBlock.height + this.height % this.numberOfRows; // y coordinate of this block
+				this.blocks[c][r] = new Block(x, y);									// creates a new block at (x, y)
 				if (r < this.numberOfRows) {
 					if (r < this.numberOfRows - 1) {
-						this.droppableBlocks[c][r] = new DroppableBlock(x, y);
+						this.droppableBlocks[c][r] = new DroppableBlock(x, y);			// creates DroppableBlock at (x, y)
 					}
-					this.disappearableBlock[c][r] = new DisappearableBlock(x, y);
+					this.disappearableBlock[c][r] = new DisappearableBlock(x, y);		// creates DisappearableBlock at (x, y)
 				}
 			}
 		}
@@ -95,42 +95,42 @@ public class Board extends JPanel {
 	// set the number of rows of blocks
 	private void setNumberOfRows(int n) {
 		this.numberOfRows = n;
-		this.reset();
+		this.reset();	// number of blocks changed after above changing
 	}
 
 	// set the number of columns of blocks
 	private void setNumberOfColumns(int n) {
 		this.numberOfColumns = n;
-		this.reset();
+		this.reset();	// number of blocks changed after above changing
 	}
 
 	public class MyKeyListener implements KeyListener {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			if (thisBoard.movableBlock.canDrop && !thisBoard.movableBlock.canMerge) {
-				if (keyCode == 37) {
+				if (keyCode == 37) {									// arrow key LEFT
 					thisBoard.movableBlock.moveLeft();
-				} else if (keyCode == 39) {
+				} else if (keyCode == 39) {								// aroow key RIGHT
 					thisBoard.movableBlock.moveRight();
-				} else if (keyCode < 58 && keyCode > 47) { // number key move to
-					if (keyCode == 48) { // 0 key
-						thisBoard.movableBlock.moveTo(9);
+				} else if (keyCode < 58 && keyCode > 47) {				// number keys move to coorresponding column
+					if (keyCode == 48) {								// 0 key works moves to rightmost (10th starting from left)
+						thisBoard.movableBlock.moveTo(9);				// moves to column 9 (10th column)
 					} else {
-						thisBoard.movableBlock.moveTo(keyCode - 49);
+						thisBoard.movableBlock.moveTo(keyCode - 49);	// keyCode - 49 is the column number it moves to (starts at 0)
 					}
 					
 				}
 			}
-			if (keyCode == 32) {
-				thisBoard.isPaused = !thisBoard.isPaused;
+			if (keyCode == 32) {										// space bar
+				thisBoard.isPaused = !thisBoard.isPaused;				// toggle the status
 				if (debugging) {
 					System.out.println(thisBoard.isPaused);
 				}
-			} else if (keyCode == 40 || keyCode == 192) {
-				if (thisBoard.sleepTime == 2) {
-					thisBoard.sleepTime = 1;
-				} else if (thisBoard.sleepTime != 1) {
-					thisBoard.sleepTime = 2;
+			} else if (keyCode == 40 || keyCode == 192) {				// arrow key DOWN
+				if (thisBoard.sleepTime == 2) {							// when sleepTime equals to 2, it's already the 2nd time to press DOWN
+					thisBoard.sleepTime = 1;							// sets sleepTime to 1 when second press (double press) DOWN
+				} else if (thisBoard.sleepTime != 1) {					// when sleepTime doesn't equal to 2 or 1, it's 1st time to press DOWN
+					thisBoard.sleepTime = 2;							// set sleepTime to 2 when first press DOWN
 				}
 			}
 			if (debugging) {
@@ -239,7 +239,6 @@ public class Board extends JPanel {
 		frame.setResizable(false);
 
 		// initialize the board
-		// board.setSize(frame.getWidth(), frame.getHeight());
 		board.setNumberOfRows(11);
 		board.setNumberOfColumns(4);
 
@@ -326,7 +325,6 @@ public class Board extends JPanel {
 							thisBoard.info.score	= thisBoard.info.score + 2;
 							thisBoard.blocks[column][row].setColor(this.color);
 							thisBoard.blocks[column][row].setVisible(true);
-							System.out.println("shouldStop"+thisBoard.blocks[column][row].y);
 							thisBoard.numbersOfStacks[column]++;
 							thisBoard.nextMovableBlock.setTransformable(true);
 							thisBoard.movableBlock		= thisBoard.nextMovableBlock;
@@ -353,9 +351,9 @@ public class Board extends JPanel {
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
 				}
-				// if (debugging) {
-				// 	System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
-				// }
+				if (debugging) {
+					System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
+				}
 			}
 		}
 
@@ -378,7 +376,6 @@ public class Board extends JPanel {
 				this.mergeTimer--;
 				thisBoard.blocks[column][row].setColor(new Color(this.color.getRed()-1, this.color.getGreen()-1, this.color.getBlue()-1));
 			} else {
-				System.out.println("stop");
 				this.canMerge		= false;
 				thisBoard.isMerging = false;
 			}
@@ -457,7 +454,9 @@ public class Board extends JPanel {
 				this.y--;
 				this.bounceTimer--;
 			} else if (this.canDrop) {
-				System.out.println("dropping "+this.y);
+				if (debugging) {
+					System.out.println("dropping "+this.y);
+				}
 				this.drop();
 				if (this.canMerge) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
