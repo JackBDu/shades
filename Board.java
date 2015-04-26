@@ -104,6 +104,7 @@ public class Board extends JPanel {
 		this.reset();	// number of blocks changed after above changing
 	}
 
+	// MyKeyListener handles key events
 	public class MyKeyListener implements KeyListener {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
@@ -146,25 +147,26 @@ public class Board extends JPanel {
 		}
 	} // MyKeyListener ends
 
+	// handles whether or not one row of blocks should disappear
 	public void handleDisappear() {
-		int		disappearingRow	= -1;			// stores the row to disappear
+		int		disappearingRow	= -1;			// stores the row to disappear, initialized to be -1, which stands for no row
 		int[]	stacks 			= Arrays.copyOf(this.numbersOfStacks, this.numbersOfStacks.length);	// make copy of the array so as to sort
 		Arrays.sort(stacks);					// sort the array in order to get minimun value
 		int		stackMin		= stacks[0];	// stores the minimum number of blocks stacked in one column
 		for (int r = this.numberOfRows - stackMin; r < this.numberOfRows; r++) {
-			boolean shouldDisappear = true;
+			boolean shouldDisappear = true;		// initializes shoudDisppear to be true, and changes it to false when not ture
 			for (int c = 1; c < this.numberOfColumns; c++) {
 				if (this.blocks[c-1][r].compareTo(this.blocks[c][r]) == 0) {
-					shouldDisappear = false;
+					shouldDisappear = false;	// changes shouldDisppear to false, if any one block of the row has a different color
 				}
 			}
 			if (shouldDisappear) {
-				disappearingRow = r;
-				break;
+				disappearingRow = r;			// stores the current row number to disappearingRow
+				break;							// break the current loop
 			}
 		}
 		if (disappearingRow != -1) {
-			thisBoard.info.score += 10;
+			thisBoard.info.score += 10;			// score incremeted by 10 whenever a row of blocks is disappearing
 			for (int c = 0; c < this.numberOfColumns; c++) {
 				Color color = thisBoard.blocks[c][disappearingRow].color;
 				thisBoard.blocks[c][disappearingRow].setVisible(false);
