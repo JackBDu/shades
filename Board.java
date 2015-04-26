@@ -19,7 +19,7 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 				debugging		= false;			// for debugging
+	boolean 				debugging		= true;			// for debugging
 	int 					numberOfColumns	= 4;				// default value for number of columns of blocks
 	int 					numberOfRows	= 11;				// default value for number of rows of blocks
 	Board					thisBoard		= this;				// for later reference
@@ -43,7 +43,7 @@ public class Board extends JPanel {
 		this.addKeyListener(listener);
 		this.width	= w;
 		this.height	= h;
-		this.setBackground(new Color(255, 255, 255));
+		this.setBackground(new Color(255, 255, 255));			// set background color to white
 		this.setFocusable(true);
 		this.reset();
 	}
@@ -165,13 +165,13 @@ public class Board extends JPanel {
 				break;							// break the current loop
 			}
 		}
-		if (disappearingRow != -1) {
-			thisBoard.info.score += 10;			// score incremeted by 10 whenever a row of blocks is disappearing
-			for (int c = 0; c < this.numberOfColumns; c++) {
-				Color color = thisBoard.blocks[c][disappearingRow].color;
-				thisBoard.blocks[c][disappearingRow].setVisible(false);
-				thisBoard.disappearableBlock[c][disappearingRow].setVisible(true);
-				thisBoard.disappearableBlock[c][disappearingRow].setColor(color);
+		if (disappearingRow != -1) {				// if there is a row to disappear
+			thisBoard.info.score += 10;			// score incremeted by 10
+			for (int c = 0; c < this.numberOfColumns; c++) {// loop through each coloumn
+				Color color = thisBoard.blocks[c][disappearingRow].color;		// stores the color of this block in variable color
+				thisBoard.blocks[c][disappearingRow].setVisible(false);			// set each column of this row to be invisible
+				thisBoard.disappearableBlock[c][disappearingRow].setVisible(true);	// set the cooresponding DisappearableBlocks to be visible
+				thisBoard.disappearableBlock[c][disappearingRow].setColor(color);	// set the color of the corresponding DisappearableBlock to be this color
 				thisBoard.numbersOfStacks[c] = thisBoard.numberOfRows - disappearingRow - 1;
 			}
 			for (int r = 0; r < disappearingRow; r++) {
@@ -253,14 +253,17 @@ public class Board extends JPanel {
 		}
 	} // main() ends
 
-	// the block class
+	/*
+	 * MovableBlock is the block that user is controlling or will be controlling
+	 * which is dropping all the time
+	 */
 	private class MovableBlock extends Block {
 		public int		tempX;	// x coordinate of the block
 		public int		tempY;	// y coordinate of the block
 		public int		tempWidth;
 		public int		tempHeight;
 		public boolean	canDrop			= false;
-		public boolean	canTransform	= false;
+		public boolean	canTransform		= false;
 		public boolean	canMerge		= false;
 		public int		mergeTime		= this.height;
 		public int		mergeTimer		= -1;
@@ -279,6 +282,7 @@ public class Board extends JPanel {
 			this.color	= new Color(m, m, m, 0);
 		}
 
+		// update the position and variables of the block
 		public void update() {
 			if (this.appearTimer >= 0) {
 				this.color = new Color(this.color.getRed(), this.color.getGreen(), this.color.getBlue(), (this.appearTime-this.appearTimer)*255/this.appearTime);
@@ -359,10 +363,12 @@ public class Board extends JPanel {
 			}
 		}
 
+		// incremets the y coordinate
 		public void drop() {
 			this.y++;
 		}
 
+		// for merging the MovableBlock with static blocks
 		public void merge() {
 			if (this.mergeTimer > 0) {
 				int row = this.tempY/this.height+1;
@@ -383,6 +389,7 @@ public class Board extends JPanel {
 			}
 		} // merge() ends
 
+		// check whether or not the user is dead
 		public void checkDie() {
 			thisBoard.isDead = this.y <= 0 ? true : false;
 			if (thisBoard.isDead) {
@@ -390,6 +397,7 @@ public class Board extends JPanel {
 			}
 		}
 
+		// moves the MovableBlock to left by 1
 		private void moveLeft() {
 			if (!thisBoard.isPaused && this.x > 0 && (thisBoard.numbersOfStacks[this.x/this.width-1] + 1)*this.height < (thisBoard.numberOfRows*this.height-this.y)) {
 				this.x -= this.width;
@@ -399,6 +407,7 @@ public class Board extends JPanel {
 			}
 		}
 
+		// moves the MovableBlock to right by 1
 		private void moveRight() {
 			if (!thisBoard.isPaused && this.x < thisBoard.width - this.width && (thisBoard.numbersOfStacks[this.x/this.width+1] + 1)*this.height < (thisBoard.numberOfRows*this.height-this.y)) {
 				this.x += this.width;
@@ -408,6 +417,7 @@ public class Board extends JPanel {
 			}
 		}
 
+		// move the MovableBlock to column n
 		private void moveTo(int n) {
 			if (!thisBoard.isPaused && n >= 0 && n < thisBoard.numberOfColumns && thisBoard.numbersOfStacks[n] + 1 < (thisBoard.numberOfRows-this.y/this.height)) {
 				int c = this.x/this.width;
@@ -426,6 +436,7 @@ public class Board extends JPanel {
 			}
 		} // moveTo() ends	
 
+		// sets whether or not the MovableBlock can start to transform
 		private void setTransformable(boolean b) {
 			this.canTransform = b;
 		}
@@ -501,18 +512,24 @@ public class Board extends JPanel {
 		}
 	} // DroppableBlock ends
 
+	/*
+	 * DisappearableBlock is used to demostrate
+	 * the disappearance of one row of blocks
+	 */
 	private class DisappearableBlock extends Block {
 		public int normHeight		= this.height;
 		public int bounceTime 		= 10;
 		public int bounceTimer 		= bounceTime;
 		public int normY;
 
+		// initializes the position of the block
 		public DisappearableBlock(int x, int y) {
 			this.x 				= x;
 			this.y 				= y;
 			this.normY			= this.y;
 		}
 
+		// updates the variables
 		public void update() {
 			if (this.visible) {
 				System.out.println("("+this.x+", "+this.y+") THIS IS VISIBLE!");
@@ -520,6 +537,7 @@ public class Board extends JPanel {
 			}
 		}
 
+		// the animation of the disappearance
 		public void disappear() {
 			if (this.bounceTimer > 0) {
 				this.height++;
@@ -542,6 +560,12 @@ public class Board extends JPanel {
 
 	}
 
+	/*
+	 * Block is the base object for all kinds
+	 * of blocks. It is cannot be moved once
+	 * created 
+	 *
+	 */
 	private class Block implements Comparable<Block> {
 		public int		x, y;														// stores x and y coordinates of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// stores width of the block, the number floored down
@@ -565,18 +589,22 @@ public class Board extends JPanel {
 			}
 		}
 
+		// sets whether or not the block is visible
 		public void setVisible(boolean b) {
 			this.visible = b;
 		}
 
+		// sets the color of the block
 		public void setColor(Color color) {
 			this.color = color;
 		}
 
+		// gets whether or not the block is visible
 		public boolean getVisible() {
 			return this.visible;
 		}
 
+		// used to compare two blocks by color
 		public int compareTo(Block block) {
 			if (this.color.getRed() == block.color.getRed() && this.color.getGreen() == block.color.getGreen() && this.color.getBlue() == block.color.getBlue()) {
 				return 1;
@@ -585,6 +613,10 @@ public class Board extends JPanel {
 		}
 	} // Block ends
 
+	/* used to display the game Info
+	 * including levels and scores 
+	 *
+	 */
 	public class Info {
 		public	int	score			= 0;						// stores the score that player earns
 		public	int level			= 1;						// stores the current level of the game
@@ -596,7 +628,8 @@ public class Board extends JPanel {
 
 		public Info() {
 		}
-
+		
+		// updates the variables in info
 		public void update() {
 			this.level			= this.score / 480 + 1;
 			int sleepTimeToSet	= thisBoard.maxSleepTime - this.level / thisBoard.maxSleepTime;
