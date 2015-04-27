@@ -258,10 +258,10 @@ public class Board extends JPanel {
 	 * which is dropping all the time
 	 */
 	private class MovableBlock extends Block {
-		public int		tempX;	// x coordinate of the block
-		public int		tempY;	// y coordinate of the block
-		public int		tempWidth;
-		public int		tempHeight;
+		public int		tempX;		// x coordinate of the block
+		public int		tempY;		// y coordinate of the block
+		public int		tempWidth; 	// temporary width of the block
+		public int		tempHeight;	// temporary height of the block
 		public boolean	canDrop			= false;
 		public boolean	canTransform		= false;
 		public boolean	canMerge		= false;
@@ -357,7 +357,7 @@ public class Board extends JPanel {
 				} else {
 					g2d.fillRect(this.x, this.y, this.width, this.height);
 				}
-				if (debugging) {
+				if (debugging&false) {
 					System.out.println("painting block (color: "+this.color+"; pos: ("+this.x+", "+this.y+"); size: "+this.tempWidth+", "+this.tempHeight+")");
 				}
 			}
