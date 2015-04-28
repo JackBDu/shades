@@ -369,7 +369,7 @@ public class Board extends JPanel {
 					this.merge();
 				}
 				int column = this.x / this.width;
-				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
+				if (this.y >= thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
 					if (this.y < 0) {
@@ -538,7 +538,7 @@ public class Board extends JPanel {
 					this.merge();
 				}
 				int column = this.x / this.width;
-				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
+				if (this.y >= thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
 					if (this.color.getRed() > 83 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
