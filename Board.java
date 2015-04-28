@@ -19,31 +19,39 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 				debugging		= true;			// for debugging
-	int 					numberOfColumns	= 4;				// default value for number of columns of blocks
-	int 					numberOfRows	= 11;				// default value for number of rows of blocks
-	Board					thisBoard		= this;				// for later reference
-	boolean					isDead;								// stores whether or not the current game is dead
-	boolean					isDisappearing; 					// stores whether or not one row is disappearing
-	boolean					isMerging;							// stores whether or not one block is merging
-	boolean					isPaused;							// stores whether or not the game is paused
-	int						maxSleepTime;						// stores max thread sleep time
-	int						minSleepTime;						// stores max thread sleep time
-	int 					sleepTime;							// stores current sleep time // will be decreased when speed up
-	Info					info;								// stores the info when playing
-	Block[][]				blocks;								// stores the static blocks
-	DroppableBlock[][]		droppableBlocks;					// stores the blocks that can only drop
-	int[]					numbersOfStacks;					// stores the the number of blocks stacked for each column
-	int						height, width;						// stores the width and height of the Board
-	MovableBlock			movableBlock, nextMovableBlock;		// stores the current and next block that player can control
-	DisappearableBlock[][]	disappearableBlock;					// stores the blocks that can only disappear
+	boolean 				debugging		= true;		// for debugging
+	int 					numberOfColumns		= 4;		// default value for number of columns of blocks
+	int 					numberOfRows		= 11;		// default value for number of rows of blocks
+	Board					thisBoard		= this;		// for later reference
+	int						redAdjust;
+	int						greenAdjust;
+	int						blueAdjust;
+	int 					colorScheme;
+	boolean					isDead;					// stores whether or not the current game is dead
+	boolean					isDisappearing; 			// stores whether or not one row is disappearing
+	boolean					isMerging;				// stores whether or not one block is merging
+	boolean					isPaused;				// stores whether or not the game is paused
+	int					maxSleepTime;				// stores max thread sleep time
+	int					minSleepTime;				// stores max thread sleep time
+	int 					sleepTime;				// stores current sleep time // will be decreased when speed up
+	Info					info;					// stores the info when playing
+	Block[][]				blocks;					// stores the static blocks
+	DroppableBlock[][]			droppableBlocks;			// stores the blocks that can only drop
+	int[]					numbersOfStacks;			// stores the the number of blocks stacked for each column
+	int					height, width;				// stores the width and height of the Board
+	MovableBlock				movableBlock, nextMovableBlock;		// stores the current and next block that player can control
+	DisappearableBlock[][]			disappearableBlock;			// stores the blocks that can only disappear
 	
 	public Board(int w, int h) {
 		KeyListener listener = new MyKeyListener();
 		this.addKeyListener(listener);
+		this.redAdjust = 0;
+		this.greenAdjust = -60;
+		this.blueAdjust = -60;
+		this.colorScheme = 0;
 		this.width	= w;
 		this.height	= h;
-		this.setBackground(new Color(255, 255, 255));			// set background color to white
+		this.setBackground(new Color(230, 230, 230));				// set background color to white
 		this.setFocusable(true);
 		this.reset();
 	}
@@ -127,12 +135,62 @@ public class Board extends JPanel {
 				if (debugging) {
 					System.out.println(thisBoard.isPaused);
 				}
-			} else if (keyCode == 40 || keyCode == 192) {				// arrow key DOWN
+			} else if (keyCode == 40 || keyCode == 192) {				// arrow key DOWN or key ~
 				if (thisBoard.sleepTime == 2) {							// when sleepTime equals to 2, it's already the 2nd time to press DOWN
 					thisBoard.sleepTime = 1;							// sets sleepTime to 1 when second press (double press) DOWN
 				} else if (thisBoard.sleepTime != 1) {					// when sleepTime doesn't equal to 2 or 1, it's 1st time to press DOWN
 					thisBoard.sleepTime = 2;							// set sleepTime to 2 when first press DOWN
 				}
+			} else if (keyCode == 38) {									// arrow key UP
+				thisBoard.colorScheme++;
+				if (thisBoard.colorScheme > 5) {
+					thisBoard.colorScheme = 0;
+				}
+				if (thisBoard.colorScheme == 0) {
+					keyCode = 82;
+				} else if (thisBoard.colorScheme == 1) {
+					keyCode = 71;
+				} else if (thisBoard.colorScheme == 2) {
+					keyCode = 66;
+				} else if (thisBoard.colorScheme == 3) {
+					keyCode = 80;
+				} else if (thisBoard.colorScheme == 4) {
+					keyCode = 89;
+				} else if (thisBoard.colorScheme == 5) {
+					keyCode = 67;
+				} 
+			}
+
+			if (keyCode == 82) {										// key R
+				thisBoard.colorScheme = 0;
+				thisBoard.redAdjust = 0;
+				thisBoard.greenAdjust = -60;
+				thisBoard.blueAdjust = -60;
+			} else if (keyCode == 71) {									// key G
+				thisBoard.colorScheme = 1;
+				thisBoard.redAdjust = -60;
+				thisBoard.greenAdjust = 0;
+				thisBoard.blueAdjust = -60;
+			} else if (keyCode == 66) {									// key B
+				thisBoard.colorScheme = 2;
+				thisBoard.redAdjust = -60;
+				thisBoard.greenAdjust = -60;
+				thisBoard.blueAdjust = 0;
+			} else if (keyCode == 80) {									// key P
+				thisBoard.colorScheme = 3;
+				thisBoard.redAdjust = 0;
+				thisBoard.greenAdjust = -60;
+				thisBoard.blueAdjust = 0;
+			} else if (keyCode == 89) {									// key Y
+				thisBoard.colorScheme = 4;
+				thisBoard.redAdjust = 0;
+				thisBoard.greenAdjust = 0;
+				thisBoard.blueAdjust = -60;
+			} else if (keyCode == 67) {									// key C
+				thisBoard.colorScheme = 5;
+				thisBoard.redAdjust = -60;
+				thisBoard.greenAdjust = 0;
+				thisBoard.blueAdjust = 0;
 			}
 			if (debugging) {
 				System.out.println(KeyEvent.getKeyText(keyCode)+"("+keyCode+")"+" pressed");
@@ -262,24 +320,27 @@ public class Board extends JPanel {
 		public int		tempY;		// y coordinate of the block
 		public int		tempWidth; 	// temporary width of the block
 		public int		tempHeight;	// temporary height of the block
-		public boolean	canDrop			= false;
-		public boolean	canTransform		= false;
-		public boolean	canMerge		= false;
+		public boolean		canDrop			= false;
+		public boolean		canTransform		= false;
+		public boolean		canMerge		= false;
 		public int		mergeTime		= this.height;
 		public int		mergeTimer		= -1;
-		public int		transformTime	= 100;
-		public int		transformTimer	= this.transformTime;
+		public int		transformTime		= 100;
+		public int		transformTimer		= this.transformTime;
 		public int		appearTime		= 100;
 		public int		appearTimer		= this.appearTime;
 
 		// contructor that sets (0, 0) as default coordinates
 		public MovableBlock() {
 			Random rand	= new Random();
-			int n		= rand.nextInt(thisBoard.numberOfColumns);;
+			int n		= rand.nextInt(thisBoard.numberOfColumns);
 			this.x		= this.width * n;
 			this.y		= - 9 * this.height / 10;
-			int m		= this.color.getRed() - rand.nextInt(4) * 43;
-			this.color	= new Color(m, m, m, 0);
+			int diff	= rand.nextInt(3) * 43;
+			int r		= this.color.getRed() - diff;
+			int g		= this.color.getGreen() - diff;
+			int b		= this.color.getBlue() - diff;
+			this.color	= new Color(r, g, b, 0);
 		}
 
 		// update the position and variables of the block
@@ -314,7 +375,7 @@ public class Board extends JPanel {
 					if (this.y < 0) {
 						row = -1;
 					}
-					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 83 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.canMerge			= true;
 						this.tempX				= this.x;
 						this.tempY				= this.y;
@@ -351,7 +412,8 @@ public class Board extends JPanel {
 		// paint the block
 		public void paint(Graphics2D g2d) {
 			if (this.visible) {
-				g2d.setColor(this.color);
+				Color color = new Color(this.color.getRed()+thisBoard.redAdjust, this.color.getGreen()+thisBoard.greenAdjust, this.color.getBlue()+thisBoard.blueAdjust, this.color.getAlpha());
+				g2d.setColor(color);
 				if (this.transformTimer >= 0) {
 					g2d.fillRect(this.tempX, this.tempY, this.tempWidth, this.tempHeight);
 				} else {
@@ -479,7 +541,7 @@ public class Board extends JPanel {
 				if (this.y == thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
-					if (this.color.getRed() > 58 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 83 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.tempX				= this.x;
 						this.tempY				= this.y;
 						this.canMerge			= true;
@@ -570,8 +632,8 @@ public class Board extends JPanel {
 		public int		x, y;														// stores x and y coordinates of the block
 		public int		width	= thisBoard.width/(thisBoard.getNumberOfColumns());	// stores width of the block, the number floored down
 		public int		height	= thisBoard.height/(thisBoard.getNumberOfRows());	// stores height of the block, the number floored down
-		public Color	color	= new Color(230, 230, 230, 255);							// stores color of the block
 		public boolean	visible	= false;											// stores whether or not the block is visible
+		public Color	color	= new Color(255, 255, 255, 255);					// stores color of the block
 
 		public Block() {
 		}
@@ -584,7 +646,8 @@ public class Board extends JPanel {
 		// paint the block
 		public void paint(Graphics2D g2d) {
 			if (this.visible) {
-				g2d.setColor(this.color);
+				Color color = new Color(this.color.getRed()+thisBoard.redAdjust, this.color.getGreen()+thisBoard.greenAdjust, this.color.getBlue()+thisBoard.blueAdjust, this.color.getAlpha());
+				g2d.setColor(color);
 				g2d.fillRect(this.x, this.y, this.width, this.height);
 			}
 		}
