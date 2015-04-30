@@ -19,7 +19,7 @@ import java.util.*;
  */
 
 public class Board extends JPanel {
-	boolean 				debugging		= true;		// for debugging
+	boolean 				debugging		= false;		// for debugging
 	int 					numberOfColumns		= 4;		// default value for number of columns of blocks
 	int 					numberOfRows		= 11;		// default value for number of rows of blocks
 	Board					thisBoard		= this;		// for later reference
@@ -194,6 +194,21 @@ public class Board extends JPanel {
 			}
 			if (debugging) {
 				System.out.println(KeyEvent.getKeyText(keyCode)+"("+keyCode+")"+" pressed");
+			}
+			if (keyCode == 68) {
+				System.out.println(thisBoard.movableBlock);
+				System.out.println(thisBoard.nextMovableBlock);
+				for (int c = 0; c < thisBoard.numberOfColumns; c++) {
+					for (int r = 0; r < thisBoard.numberOfRows + 1; r++) {
+						System.out.println("Static "+thisBoard.blocks[c][r]);
+						if (r < thisBoard.numberOfRows) {
+							if (r < thisBoard.numberOfRows - 1) {
+								System.out.println("Droppable "+thisBoard.droppableBlocks[c][r]);
+							}
+							System.out.println("Disappearable "+thisBoard.disappearableBlock[c][r]);
+						}
+					}
+				}
 			}
 		}
 		@Override
@@ -375,7 +390,7 @@ public class Board extends JPanel {
 					if (this.y < 0) {
 						row = -1;
 					}
-					if (this.color.getRed() > 83 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 126 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.canMerge			= true;
 						this.tempX				= this.x;
 						this.tempY				= this.y;
@@ -541,7 +556,7 @@ public class Board extends JPanel {
 				if (this.y >= thisBoard.height - this.height * (thisBoard.numbersOfStacks[column] + 1)) {
 					thisBoard.sleepTime = thisBoard.info.levelSleepTime;
 					int row = this.y / this.height;
-					if (this.color.getRed() > 83 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
+					if (this.color.getRed() > 126 && row+1 < thisBoard.numberOfRows && 1 == this.compareTo(thisBoard.blocks[column][row+1])) {
 						this.tempX				= this.x;
 						this.tempY				= this.y;
 						this.canMerge			= true;
@@ -594,7 +609,9 @@ public class Board extends JPanel {
 		// updates the variables
 		public void update() {
 			if (this.visible) {
-				System.out.println("("+this.x+", "+this.y+") THIS IS VISIBLE!");
+				if (debugging) {
+					System.out.println("("+this.x+", "+this.y+") THIS IS VISIBLE!");
+				}
 				this.disappear();
 			}
 		}
@@ -673,6 +690,10 @@ public class Board extends JPanel {
 				return 1;
 			}
 			return 0;
+		}
+
+		public String toString() {
+			return "### Block("+this.x/this.width+", "+this.y/this.height+")\nW:"+this.width+" H:"+this.height+"\nx:"+this.x+" y:"+this.y+"\nVisible:"+this.visible+"\nColor:"+this.color+"\n===";
 		}
 	} // Block ends
 
