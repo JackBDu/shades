@@ -8,7 +8,7 @@ This game is made for Object Oriented Programming at NYU Shanghai.
 
 ## Screenshots
 
-|![shade read](./shades_01.jpg)|![shade green](./shades_02.jpg)|
+| ![shade read](./shades_01.jpg) | ![shade green](./shades_02.jpg) |
 
 ## License
 
